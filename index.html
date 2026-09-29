@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlagGuessr - De Ultieme Vlaggen Quiz</title>
+    <!-- Tailwind CSS voor strakke styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2s infinite ease-in-out;
+        }
+        .flag-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+
+    <!-- Header / Scoreboard -->
+    <header class="w-full max-w-4xl mx-auto p-4 flex justify-between items-center border-b border-slate-800">
+        <div class="flex items-center gap-2">
+            <button id="home-btn" onclick="exitToMenu()" class="hidden text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition mr-1 flex items-center gap-1 text-xs font-semibold" title="Terug naar hoofdmenu">
+                <span>🏠</span> <span class="hidden sm:inline">Menu</span>
+            </button>
+            <span class="text-2xl">📍</span>
+            <h1 class="text-xl font-bold bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent tracking-wide">
+                Flag<span class="text-amber-400">Guessr</span>
+            </h1>
+            <span id="level-badge" class="hidden text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold"></span>
+        </div>
+        
+        <div class="flex items-center gap-6 text-sm md:text-base font-semibold">
+            <div class="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                <span class="text-rose-500">❤️</span>
+                <span id="lives-display" class="text-slate-200">3</span>
+            </div>
+            <div class="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                <span class="text-amber-400">🔥</span>
+                <span id="streak-display" class="text-amber-300">0</span>
+            </div>
+            <div class="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                <span class="text-emerald-400">⭐</span>
+                <span id="score-display" class="text-emerald-300">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="w-full max-w-2xl mx-auto px-4 py-6 flex-grow flex flex-col justify-center items-center">
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="w-full bg-slate-800/80 backdrop-blur border border-slate-700 rounded-2xl p-8 text-center shadow-xl">
+            <div class="text-6xl mb-4 animate-bounce">🌍</div>
+            <h2 class="text-3xl font-extrabold mb-2 text-white">Welkom bij <span class="text-emerald-400">Flag</span><span class="text-amber-400">Guessr</span>!</h2>
+            <p class="text-slate-300 mb-6 max-w-md mx-auto leading-relaxed text-sm sm:text-base">
+                Herken jij de vlaggen van de wereld? Kies je niveau en ontdek of jij je niet laat foppen door gelijkende vlaggen!
+            </p>
+
+            <!-- Level Selector -->
+            <div class="mb-6">
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Kies een Niveau</label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-md mx-auto">
+                    <button onclick="selectLevel('easy')" id="lvl-easy" class="level-btn border-2 border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-emerald-500/20">
+                        <span class="text-lg">🌱</span>
+                        <span>Makkelijk</span>
+                        <span class="text-[10px] font-normal text-emerald-400/80">Bekende vlaggen</span>
+                    </button>
+                    <button onclick="selectLevel('medium')" id="lvl-medium" class="level-btn border-2 border-slate-700 bg-slate-800 text-slate-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-700">
+                        <span class="text-lg">⚡</span>
+                        <span>Middelmatig</span>
+                        <span class="text-[10px] font-normal text-slate-400">Lichte strikvragen</span>
+                    </button>
+                    <button onclick="selectLevel('hard')" id="lvl-hard" class="level-btn border-2 border-slate-700 bg-slate-800 text-slate-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-700">
+                        <span class="text-lg">🔥</span>
+                        <span>Moeilijk</span>
+                        <span class="text-[10px] font-normal text-slate-400">Extreme doppelgängers</span>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3.5 px-10 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 text-lg">
+                Start FlagGuessr 🚀
+            </button>
+        </div>
+
+        <!-- Gameplay Screen -->
+        <div id="game-screen" class="w-full hidden flex flex-col items-center">
+            
+            <!-- Exit level bar -->
+            <div class="w-full flex justify-between items-center mb-3">
+                <button onclick="exitToMenu()" class="text-xs text-slate-400 hover:text-slate-100 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg transition duration-200 flex items-center gap-1.5">
+                    <span>⬅️</span> Terug naar Menu
+                </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-800 h-2 rounded-full mb-6 overflow-hidden">
+                <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-emerald-400 h-full w-0 transition-all duration-300"></div>
+            </div>
+
+            <!-- Flag Display -->
+            <div class="mb-8 w-full flex justify-center">
+                <div class="relative group">
+                    <img id="flag-image" src="" alt="Vlag om te raden" 
+                         class="h-44 sm:h-56 object-cover rounded-lg border-4 border-slate-700 flag-shadow transition-transform duration-300">
+                </div>
+            </div>
+
+            <!-- Multiple Choice Grid -->
+            <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full mb-6">
+                <!-- Option buttons injected via JS -->
+            </div>
+
+            <!-- Fact / Explanation Box -->
+            <div id="fact-box" class="w-full bg-slate-800/90 border border-slate-700 rounded-xl p-4 mb-6 hidden animate-fade-in">
+                <div class="flex items-start gap-3">
+                    <span class="text-xl">💡</span>
+                    <div>
+                        <h4 class="font-bold text-amber-400 text-sm uppercase tracking-wider mb-1">Wist je dat?</h4>
+                        <p id="fact-text" class="text-sm text-slate-300 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Question Button -->
+            <button id="next-btn" onclick="nextQuestion()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-xl transition duration-200 hidden shadow-md">
+                Volgende Vraag ➔
+            </button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="w-full bg-slate-800/80 backdrop-blur border border-slate-700 rounded-2xl p-8 text-center shadow-xl hidden">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-3xl font-bold mb-2 text-white">Game Over!</h2>
+            <p id="final-stats" class="text-slate-300 mb-6"></p>
+            
+            <div class="bg-slate-900/60 rounded-xl p-4 mb-6 border border-slate-700/50 flex justify-around">
+                <div>
+                    <div class="text-xs text-slate-400 uppercase">Eindscore</div>
+                    <div id="final-score" class="text-2xl font-bold text-emerald-400">0</div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-400 uppercase">Hoogste Streak</div>
+                    <div id="best-streak" class="text-2xl font-bold text-amber-400">0</div>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600 text-white font-bold py-3 px-8 rounded-xl transition duration-200 shadow-lg active:scale-95">
+                Opnieuw Spelen 🔄
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800">
+        Aardrijkskunde Edu-Game &bull; Test je kennis van gelijkende vlaggen
+    </footer>
+
+    <!-- Game Logic -->
+    <script>
+        // Database gecategoriseerd per niveau
+        const flagDatabase = {
+            easy: [
+                { code: 'fr', name: 'Frankrijk', similar: ['Nederland', 'Italië', 'België'], fact: 'De Franse "Tricolore" heeft blauw, wit en rood in verticale banen.' },
+                { code: 'de', name: 'Duitsland', similar: ['België', 'Oostenrijk', 'Spanje'], fact: 'Duitsland gebruikt zwart, rood en goud horizontaal.' },
+                { code: 'us', name: 'Verenigde Staten', similar: ['Liberia', 'Malaysia', 'Griekenland'], fact: 'De VS heeft 50 sterren voor elke staat en 13 strepen voor de oorspronkelijke kolonies.' },
+                { code: 'jp', name: 'Japan', similar: ['Bangladesh', 'Palau', 'Zuid-Korea'], fact: 'De rode cirkel op de Japanse vlag stelt de opgaande zon voor.' },
+                { code: 'br', name: 'Brazilië', similar: ['Argentinië', 'Colombia', 'Jamaica'], fact: 'De bol op de Braziliaanse vlag toont de nachtelijke hemel zoals die te zien was boven Rio de Janeiro in 1889.' },
+                { code: 'ca', name: 'Canada', similar: ['Peru', 'Oostenrijk', 'Zwitserland'], fact: 'Het esdoornblad (maple leaf) is sinds 1965 het officiële symbool op de Canadese vlag.' },
+                { code: 'it', name: 'Italië', similar: ['Frankrijk', 'Ierland', 'Hongarije'], fact: 'De Italiaanse vlag lijkt op de Franse, maar heeft groen in plaats van blauw.' },
+                { code: 'es', name: 'Spanje', similar: ['Portugal', 'Andorra', 'Geel-Rood'], fact: 'De middelste gele baan op de Spaanse vlag is twee keer zo breed als de rode banen.' }
+            ],
+            medium: [
+                { code: 'nl', name: 'Nederland', similar: ['Luxemburg', 'Frankrijk', 'Rusland'], fact: 'De vlag van Luxemburg lijkt sterk op die van Nederland, maar Luxemburg gebruikt een lichtere tint blauw.' },
+                { code: 'lu', name: 'Luxemburg', similar: ['Nederland', 'Frankrijk', 'Paraguay'], fact: 'Luxemburg gebruikt hemelsblauw, terwijl Nederland marineblauw gebruikt.' },
+                { code: 'ie', name: 'Ierland', similar: ['Ivoorkust', 'Italië', 'India'], fact: 'Ivoorkust heeft exact dezelfde kleuren als Ierland (groen, wit, oranje), maar dan gespiegeld!' },
+                { code: 'ci', name: 'Ivoorkust', similar: ['Ierland', 'Italië', 'Niger'], fact: 'Ivoorkust begint met oranje aan de stokzijde, terwijl Ierland begint met groen.' },
+                { code: 'nz', name: 'Nieuw-Zeeland', similar: ['Australië', 'Verenigd Koninkrijk', 'Fiji'], fact: 'Nieuw-Zeeland heeft vier rode sterren met een witte rand. Australië heeft zes witte sterren.' },
+                { code: 'au', name: 'Australië', similar: ['Nieuw-Zeeland', 'Verenigd Koninkrijk', 'Tuvalu'], fact: 'Australië heeft de grote 7-puntige "Commonwealth Star" onder de Union Jack staan.' },
+                { code: 'co', name: 'Colombia', similar: ['Ecuador', 'Venezuela', 'Roemenië'], fact: 'Bij Colombia is de gele baan twee keer zo breed als de blauwe en rode baan.' },
+                { code: 'ec', name: 'Ecuador', similar: ['Colombia', 'Venezuela', 'Bolivia'], fact: 'Ecuador heeft precies dezelfde gele, blauwe en rode banen als Colombia, maar met het wapenschild in het midden.' },
+                { code: 'no', name: 'Noorwegen', similar: ['IJsland', 'Denemarken', 'Finland'], fact: 'Noorwegen heeft een blauw kruis met witte randen op een rode achtergrond.' },
+                { code: 'is', name: 'IJsland', similar: ['Noorwegen', 'Faeröer', 'Denemarken'], fact: 'IJsland spiegelt de kleuren van Noorwegen: blauw veld, wit omrand rood kruis.' }
+            ],
+            hard: [
+                { code: 'id', name: 'Indonesië', similar: ['Polen', 'Monaco', 'Singapore'], fact: 'De vlag van Indonesië is vrijwel identiek aan die van Monaco, maar heeft een langere verhouding (2:3 vs 4:5).' },
+                { code: 'mc', name: 'Monaco', similar: ['Indonesië', 'Polen', 'Singapore'], fact: 'Monaco gebruikt dezelfde rood-witte kleuren als Indonesië, maar de vlag van Monaco is officieel iets vierkanter.' },
+                { code: 'pl', name: 'Polen', similar: ['Indonesië', 'Monaco', 'Tsjechië'], fact: 'Polen heeft het wit boven en rood onder. Dit is exact het omgekeerde van Indonesië!' },
+                { code: 'td', name: 'Tjaad', similar: ['Roemenië', 'Andorra', 'Mali'], fact: 'De vlaggen van Tjaad en Roemenië zijn vrijwel identiek; Tjaad gebruikt enkel een klein fractietje donkerder blauw.' },
+                { code: 'ro', name: 'Roemenië', similar: ['Tjaad', 'Andorra', 'Moldavië'], fact: 'Toen Roemenië het communistische embleem schrapte, werden de vlaggen van Tjaad en Roemenië identiek.' },
+                { code: 'ml', name: 'Mali', similar: ['Guinee', 'Senegal', 'Ghana'], fact: 'Mali is groen-geel-rood. Guinee heeft exact dezelfde Pan-Afrikaanse kleuren, maar gespiegeld: rood-geel-groen.' },
+                { code: 'gn', name: 'Guinee', similar: ['Mali', 'Kameroen', 'Ghana'], fact: 'Guinee gebruikt rood-geel-groen verticaal. Rood staat voor het bloed van de martelaren.' },
+                { code: 'qa', name: 'Qatar', similar: ['Bahrein', 'Letland', 'Verenigde Arabische Emiraten'], fact: 'Qatar gebruikt maroon-rood met 9 kartels. Bahrein gebruikt lichter rood met slechts 5 kartels.' },
+                { code: 'bh', name: 'Bahrein', similar: ['Qatar', 'Oman', 'Tunesië'], fact: 'Bahrein heeft 5 witte driehoeken (kartels) die de 5 pijlers van de islam voorstellen.' }
+            ]
+        };
+
+        // Game State
+        let selectedDifficulty = 'easy';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let maxStreak = 0;
+        let lives = 3;
+        let shuffledQuizData = [];
+        let canAnswer = true;
+
+        function exitToMenu() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('level-badge').classList.add('hidden');
+            document.getElementById('home-btn').classList.add('hidden');
+        }
+
+        function selectLevel(level) {
+            selectedDifficulty = level;
+            const levels = ['easy', 'medium', 'hard'];
+            
+            levels.forEach(lvl => {
+                const btn = document.getElementById(`lvl-${lvl}`);
+                if (lvl === level) {
+                    btn.className = `level-btn border-2 border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-emerald-500/20 shadow-md`;
+                } else {
+                    btn.className = `level-btn border-2 border-slate-700 bg-slate-800 text-slate-400 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-700`;
+                }
+            });
+        }
+
+        // Audio Effects met Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(164.81, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            }
+        }
+
+        function shuffle(array) {
+            return [...array].sort(() => Math.random() - 0.5);
+        }
+
+        function startGame() {
+            score = 0;
+            streak = 0;
+            maxStreak = 0;
+            lives = 3;
+            currentQuestionIndex = 0;
+            
+            // Filter database op gekozen niveau
+            const levelData = flagDatabase[selectedDifficulty];
+            shuffledQuizData = shuffle(levelData);
+
+            // Update badge in header
+            const badge = document.getElementById('level-badge');
+            badge.classList.remove('hidden');
+            const levelNames = { easy: 'Makkelijk', medium: 'Middelmatig', hard: 'Moeilijk' };
+            badge.innerText = levelNames[selectedDifficulty];
+
+            // Toon home knop in header
+            document.getElementById('home-btn').classList.remove('hidden');
+
+            updateStats();
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            canAnswer = true;
+            document.getElementById('fact-box').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+
+            const current = shuffledQuizData[currentQuestionIndex];
+            
+            const progressPercent = ((currentQuestionIndex) / shuffledQuizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            const flagImg = document.getElementById('flag-image');
+            flagImg.src = `https://flagcdn.com/w640/${current.code}.png`;
+
+            const choices = shuffle([current.name, ...current.similar]);
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.className = `option-btn w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 
+                                    text-slate-100 font-medium py-3.5 px-4 rounded-xl transition duration-150 
+                                    text-center shadow-sm active:scale-98 flex items-center justify-between px-6`;
+                button.innerHTML = `<span>${choice}</span><span class="indicator text-lg"></span>`;
+                button.onclick = () => checkAnswer(choice, current, button);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedChoice, currentData, clickedButton) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            const allButtons = document.querySelectorAll('.option-btn');
+            const isCorrect = selectedChoice === currentData.name;
+
+            // Score multiplier afhankelijk van level
+            const multiplier = selectedDifficulty === 'hard' ? 3 : (selectedDifficulty === 'medium' ? 2 : 1);
+
+            if (isCorrect) {
+                playSound('correct');
+                clickedButton.classList.remove('bg-slate-800', 'hover:bg-slate-700', 'border-slate-700');
+                clickedButton.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white');
+                clickedButton.querySelector('.indicator').innerText = '✓';
+
+                score += (100 + (streak * 20)) * multiplier;
+                streak++;
+                if (streak > maxStreak) maxStreak = streak;
+            } else {
+                playSound('wrong');
+                clickedButton.classList.remove('bg-slate-800', 'hover:bg-slate-700', 'border-slate-700');
+                clickedButton.classList.add('bg-rose-600', 'border-rose-500', 'text-white');
+                clickedButton.querySelector('.indicator').innerText = '✕';
+
+                allButtons.forEach(btn => {
+                    if (btn.innerText.includes(currentData.name)) {
+                        btn.classList.remove('bg-slate-800');
+                        btn.classList.add('bg-emerald-600/80', 'border-emerald-500', 'text-white');
+                        btn.querySelector('.indicator').innerText = '✓';
+                    }
+                });
+
+                streak = 0;
+                lives--;
+            }
+
+            allButtons.forEach(btn => btn.disabled = true);
+
+            updateStats();
+
+            document.getElementById('fact-text').innerText = currentData.fact;
+            document.getElementById('fact-box').classList.remove('hidden');
+
+            if (lives <= 0 || currentQuestionIndex >= shuffledQuizData.length - 1) {
+                setTimeout(endGame, 1500);
+            } else {
+                document.getElementById('next-btn').classList.remove('hidden');
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function updateStats() {
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('streak-display').innerText = streak;
+            document.getElementById('lives-display').innerText = '❤️'.repeat(Math.max(0, lives));
+        }
+
+        function endGame() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.remove('hidden');
+
+            // Verberg de home knop in header op game over scherm
+            document.getElementById('home-btn').classList.add('hidden');
+
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('best-streak').innerText = maxStreak;
+
+            const statsText = lives <= 0 
+                ? 'Helaas, al je levens zijn op! Oefen nog eens op een lager niveau.' 
+                : 'Gefeliciteerd! Je hebt alle vlaggen uit dit niveau gehaald!';
+            
+            document.getElementById('final-stats').innerText = statsText;
+        }
+    </script>
+</body>
+</html>
