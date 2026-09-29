@@ -35,6 +35,10 @@
         </div>
         
         <div class="flex items-center gap-6 text-sm md:text-base font-semibold">
+            <div id="rank-display-container" class="hidden items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                <span id="rank-icon" class="text-base">🥉</span>
+                <span id="rank-name" class="text-slate-200 text-xs sm:text-sm font-bold">Unranked</span>
+            </div>
             <div class="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
                 <span class="text-rose-500">❤️</span>
                 <span id="lives-display" class="text-slate-200">3</span>
@@ -64,8 +68,8 @@
             <!-- Level Selector -->
             <div class="mb-6">
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Kies een Niveau</label>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-md mx-auto">
-                    <button onclick="selectLevel('easy')" id="lvl-easy" class="level-btn border-2 border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-emerald-500/20">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-md mx-auto mb-3">
+                    <button onclick="selectLevel('easy')" id="lvl-easy" class="level-btn border-2 border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-emerald-500/20 shadow-md scale-105">
                         <span class="text-lg">🌱</span>
                         <span>Makkelijk</span>
                         <span class="text-[10px] font-normal text-emerald-400/80">Bekende vlaggen</span>
@@ -81,11 +85,21 @@
                         <span class="text-[10px] font-normal text-slate-400">Extreme doppelgängers</span>
                     </button>
                 </div>
+                <button onclick="selectLevel('endless')" id="lvl-endless" class="level-btn border-2 border-slate-700 bg-slate-800 text-slate-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 hover:bg-slate-700 w-full max-w-md mx-auto">
+                    <span class="text-lg">♾️</span>
+                    <span>Oneindige Modus</span>
+                    <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(Alles door elkaar!)</span>
+                </button>
             </div>
 
-            <button onclick="startGame()" class="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3.5 px-10 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 text-lg">
-                Start FlagGuessr 🚀
-            </button>
+            <div class="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
+                <button onclick="startGame()" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3.5 px-6 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 text-lg">
+                    Start Quiz 🚀
+                </button>
+                <button onclick="showLeaderboard()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3.5 px-6 rounded-xl transition duration-200 shadow-lg active:scale-95 text-lg flex items-center justify-center gap-2">
+                    <span>🏆</span> Leaderboard
+                </button>
+            </div>
         </div>
 
         <!-- Gameplay Screen -->
@@ -144,14 +158,58 @@
                     <div class="text-xs text-slate-400 uppercase">Eindscore</div>
                     <div id="final-score" class="text-2xl font-bold text-emerald-400">0</div>
                 </div>
+                <div id="final-rank-container" class="hidden">
+                    <div class="text-xs text-slate-400 uppercase">Rank</div>
+                    <div id="final-rank" class="text-2xl font-bold">🥉 Bronze I</div>
+                </div>
                 <div>
                     <div class="text-xs text-slate-400 uppercase">Hoogste Streak</div>
                     <div id="best-streak" class="text-2xl font-bold text-amber-400">0</div>
                 </div>
             </div>
 
-            <button onclick="startGame()" class="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600 text-white font-bold py-3 px-8 rounded-xl transition duration-200 shadow-lg active:scale-95">
-                Opnieuw Spelen 🔄
+            <div id="leaderboard-submit-section" class="mb-6 bg-slate-700/30 p-4 rounded-xl border border-slate-600">
+                <label class="block text-sm font-semibold text-slate-300 mb-2">Plaats je score op het Ranked Leaderboard!</label>
+                <div class="flex gap-2">
+                    <input type="text" id="player-name" placeholder="Jouw naam..." maxlength="15" class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white outline-none focus:border-emerald-500">
+                    <button onclick="submitScore()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Opslaan</button>
+                </div>
+                <p id="submit-msg" class="text-xs text-emerald-400 mt-2 hidden">Score succesvol opgeslagen!</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="startGame()" class="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-xl transition duration-200 shadow-lg active:scale-95">
+                    Opnieuw Spelen 🔄
+                </button>
+                <button onclick="exitToMenu()" class="w-full sm:w-auto bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl transition duration-200 shadow-lg active:scale-95">
+                    Kies Niveau 🏠
+                </button>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboard-screen" class="w-full bg-slate-800/80 backdrop-blur border border-slate-700 rounded-2xl p-6 sm:p-8 text-center shadow-xl hidden">
+            <div class="text-5xl mb-4">🌍</div>
+            <h2 class="text-3xl font-bold mb-6 text-white">Wereldwijde <span class="text-amber-400">Topscores</span></h2>
+            
+            <div class="bg-slate-900/80 rounded-xl border border-slate-700 overflow-hidden mb-6">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-800 text-slate-400 uppercase text-xs">
+                        <tr>
+                            <th class="px-4 py-3">#</th>
+                            <th class="px-4 py-3">Speler</th>
+                            <th class="px-4 py-3">Rank</th>
+                            <th class="px-4 py-3 text-right">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body" class="divide-y divide-slate-700/50">
+                        <!-- Rijen via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button onclick="hideLeaderboard()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl transition duration-200 shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                <span>⬅️</span> Terug naar Menu
             </button>
         </div>
 
@@ -169,12 +227,16 @@
             easy: [
                 { code: 'fr', name: 'Frankrijk', similar: ['Nederland', 'Italië', 'België'], fact: 'De Franse "Tricolore" heeft blauw, wit en rood in verticale banen.' },
                 { code: 'de', name: 'Duitsland', similar: ['België', 'Oostenrijk', 'Spanje'], fact: 'Duitsland gebruikt zwart, rood en goud horizontaal.' },
-                { code: 'us', name: 'Verenigde Staten', similar: ['Liberia', 'Malaysia', 'Griekenland'], fact: 'De VS heeft 50 sterren voor elke staat en 13 strepen voor de oorspronkelijke kolonies.' },
+                { code: 'us', name: 'Verenigde Staten', similar: ['Liberia', 'Maleisië', 'Griekenland'], fact: 'De VS heeft 50 sterren voor elke staat en 13 strepen voor de oorspronkelijke kolonies.' },
                 { code: 'jp', name: 'Japan', similar: ['Bangladesh', 'Palau', 'Zuid-Korea'], fact: 'De rode cirkel op de Japanse vlag stelt de opgaande zon voor.' },
                 { code: 'br', name: 'Brazilië', similar: ['Argentinië', 'Colombia', 'Jamaica'], fact: 'De bol op de Braziliaanse vlag toont de nachtelijke hemel zoals die te zien was boven Rio de Janeiro in 1889.' },
                 { code: 'ca', name: 'Canada', similar: ['Peru', 'Oostenrijk', 'Zwitserland'], fact: 'Het esdoornblad (maple leaf) is sinds 1965 het officiële symbool op de Canadese vlag.' },
                 { code: 'it', name: 'Italië', similar: ['Frankrijk', 'Ierland', 'Hongarije'], fact: 'De Italiaanse vlag lijkt op de Franse, maar heeft groen in plaats van blauw.' },
-                { code: 'es', name: 'Spanje', similar: ['Portugal', 'Andorra', 'Geel-Rood'], fact: 'De middelste gele baan op de Spaanse vlag is twee keer zo breed als de rode banen.' }
+                { code: 'es', name: 'Spanje', similar: ['Portugal', 'Andorra', 'Geel-Rood'], fact: 'De middelste gele baan op de Spaanse vlag is twee keer zo breed als de rode banen.' },
+                { code: 'gb', name: 'Verenigd Koninkrijk', similar: ['Australië', 'Nieuw-Zeeland', 'Fiji'], fact: 'De "Union Jack" is een combinatie van de kruizen van Engeland, Schotland en Ierland.' },
+                { code: 'tr', name: 'Turkije', similar: ['Tunesië', 'Pakistan', 'Algerije'], fact: 'De ster en halve maan zijn traditionele symbolen van de islam en het Ottomaanse Rijk.' },
+                { code: 'sa', name: 'Saoedi-Arabië', similar: ['Pakistan', 'Iran', 'Libië'], fact: 'Op de vlag staat de islamitische geloofsbelijdenis (Sjahada) en een zwaard.' },
+                { code: 'il', name: 'Israël', similar: ['Griekenland', 'Honduras', 'Argentinië'], fact: 'De vlag toont een blauwe davidster tussen twee horizontale blauwe strepen, wat een gebedssjaal (talliet) symboliseert.' }
             ],
             medium: [
                 { code: 'nl', name: 'Nederland', similar: ['Luxemburg', 'Frankrijk', 'Rusland'], fact: 'De vlag van Luxemburg lijkt sterk op die van Nederland, maar Luxemburg gebruikt een lichtere tint blauw.' },
@@ -186,7 +248,15 @@
                 { code: 'co', name: 'Colombia', similar: ['Ecuador', 'Venezuela', 'Roemenië'], fact: 'Bij Colombia is de gele baan twee keer zo breed als de blauwe en rode baan.' },
                 { code: 'ec', name: 'Ecuador', similar: ['Colombia', 'Venezuela', 'Bolivia'], fact: 'Ecuador heeft precies dezelfde gele, blauwe en rode banen als Colombia, maar met het wapenschild in het midden.' },
                 { code: 'no', name: 'Noorwegen', similar: ['IJsland', 'Denemarken', 'Finland'], fact: 'Noorwegen heeft een blauw kruis met witte randen op een rode achtergrond.' },
-                { code: 'is', name: 'IJsland', similar: ['Noorwegen', 'Faeröer', 'Denemarken'], fact: 'IJsland spiegelt de kleuren van Noorwegen: blauw veld, wit omrand rood kruis.' }
+                { code: 'is', name: 'IJsland', similar: ['Noorwegen', 'Faeröer', 'Denemarken'], fact: 'IJsland spiegelt de kleuren van Noorwegen: blauw veld, wit omrand rood kruis.' },
+                { code: 'ae', name: 'Verenigde Arabische Emiraten', similar: ['Koeweit', 'Jordanië', 'Soedan'], fact: 'De VAE-vlag heeft een verticale rode baan aan de linkerkant en horizontaal groen, wit en zwart.' },
+                { code: 'kw', name: 'Koeweit', similar: ['VAE', 'Jordanië', 'Palestina'], fact: 'In plaats van een driehoek of verticale baan, heeft Koeweit een zwarte trapeze aan de linkerkant.' },
+                { code: 'ir', name: 'Iran', similar: ['Tadzjikistan', 'Hongarije', 'India'], fact: 'In de randen van de groene en rode baan staat 22 keer "Allahu Akbar" (God is de grootste) geschreven.' },
+                { code: 'sy', name: 'Syrië', similar: ['Irak', 'Jemen', 'Egypte'], fact: 'Syrië heeft twee groene sterren in de middelste witte baan, die oorspronkelijk Syrië en Egypte voorstelden.' },
+                { code: 'iq', name: 'Irak', similar: ['Syrië', 'Jemen', 'Egypte'], fact: 'Irak heeft de Takbir ("Allahu Akbar") in groen Koefisch schrift in het midden van de witte baan.' },
+                { code: 'eg', name: 'Egypte', similar: ['Jemen', 'Syrië', 'Irak'], fact: 'Egypte heeft de gouden "Adelaar van Saladin" in het midden van de vlag.' },
+                { code: 'lb', name: 'Libanon', similar: ['Oostenrijk', 'Peru', 'Frans-Polynesië'], fact: 'De Libanese ceder in het midden is een historisch symbool van heiligheid, eeuwigheid en vrede.' },
+                { code: 'om', name: 'Oman', similar: ['VAE', 'Madagaskar', 'Koeweit'], fact: 'Oman heeft linksboven het nationale embleem: een kromdolk (khanjar) gekruist met twee zwaarden.' }
             ],
             hard: [
                 { code: 'id', name: 'Indonesië', similar: ['Polen', 'Monaco', 'Singapore'], fact: 'De vlag van Indonesië is vrijwel identiek aan die van Monaco, maar heeft een langere verhouding (2:3 vs 4:5).' },
@@ -197,7 +267,13 @@
                 { code: 'ml', name: 'Mali', similar: ['Guinee', 'Senegal', 'Ghana'], fact: 'Mali is groen-geel-rood. Guinee heeft exact dezelfde Pan-Afrikaanse kleuren, maar gespiegeld: rood-geel-groen.' },
                 { code: 'gn', name: 'Guinee', similar: ['Mali', 'Kameroen', 'Ghana'], fact: 'Guinee gebruikt rood-geel-groen verticaal. Rood staat voor het bloed van de martelaren.' },
                 { code: 'qa', name: 'Qatar', similar: ['Bahrein', 'Letland', 'Verenigde Arabische Emiraten'], fact: 'Qatar gebruikt maroon-rood met 9 kartels. Bahrein gebruikt lichter rood met slechts 5 kartels.' },
-                { code: 'bh', name: 'Bahrein', similar: ['Qatar', 'Oman', 'Tunesië'], fact: 'Bahrein heeft 5 witte driehoeken (kartels) die de 5 pijlers van de islam voorstellen.' }
+                { code: 'bh', name: 'Bahrein', similar: ['Qatar', 'Oman', 'Tunesië'], fact: 'Bahrein heeft 5 witte driehoeken (kartels) die de 5 pijlers van de islam voorstellen.' },
+                { code: 'jo', name: 'Jordanië', similar: ['Palestina', 'Soedan', 'Westelijke Sahara'], fact: 'Jordanië lijkt enorm op Palestina, maar heeft een zevenpuntige witte ster in de rode driehoek.' },
+                { code: 'ps', name: 'Palestina', similar: ['Jordanië', 'Soedan', 'Koeweit'], fact: 'De vlag is bijna gelijk aan die van Jordanië, maar mist de ster. Soedan heeft de groene en zwarte baan omgedraaid.' },
+                { code: 'ye', name: 'Jemen', similar: ['Syrië', 'Egypte', 'Irak'], fact: 'Jemen gebruikt de bekende rood-wit-zwarte strepen, maar als enige Arabische land zonder enig symbool erin.' },
+                { code: 'sd', name: 'Soedan', similar: ['Palestina', 'Jordanië', 'Koeweit'], fact: 'Let op de kleuren: in tegenstelling tot Palestina heeft Soedan de groene kleur in de driehoek, en niet als streep.' },
+                { code: 'sk', name: 'Slowakije', similar: ['Slovenië', 'Servië', 'Rusland'], fact: 'Slowakije heeft een dubbel patriarchen-kruis op drie bergen in het schild, Slovenië heeft het schild met sterren en een berg.' },
+                { code: 'si', name: 'Slovenië', similar: ['Slowakije', 'Servië', 'Kroatië'], fact: 'Het schild toont de berg Triglav en drie gouden sterren. De vlag lijkt sterk op die van Slowakije.' }
             ]
         };
 
@@ -210,25 +286,133 @@
         let lives = 3;
         let shuffledQuizData = [];
         let canAnswer = true;
+        let isEndless = false;
+
+        const LEADERBOARD_KEY = 'flagguessr_leaderboard';
+        
+        function getLeaderboard() {
+            const data = localStorage.getItem(LEADERBOARD_KEY);
+            if (data) return JSON.parse(data);
+            
+            // Standaard dummy data voor competitie (alleen endless)
+            return [
+                { name: 'Ninja', score: 65000, mode: 'endless' },
+                { name: 'AardrijkskundePro', score: 32500, mode: 'endless' },
+                { name: 'VlaggenKoning', score: 16400, mode: 'endless' },
+                { name: 'GeoMaster', score: 8200, mode: 'endless' },
+                { name: 'Noob123', score: 1400, mode: 'endless' }
+            ];
+        }
+
+        // Fortnite Rank Systeem Checker
+        function getRank(s) {
+            if (s < 500) return { name: 'Bronze I', icon: '🥉', color: 'text-amber-700' };
+            if (s < 1000) return { name: 'Bronze II', icon: '🥉', color: 'text-amber-700' };
+            if (s < 1500) return { name: 'Bronze III', icon: '🥉', color: 'text-amber-700' };
+            if (s < 2500) return { name: 'Silver I', icon: '🥈', color: 'text-slate-400' };
+            if (s < 3500) return { name: 'Silver II', icon: '🥈', color: 'text-slate-400' };
+            if (s < 4500) return { name: 'Silver III', icon: '🥈', color: 'text-slate-400' };
+            if (s < 6000) return { name: 'Gold I', icon: '🥇', color: 'text-yellow-400' };
+            if (s < 7500) return { name: 'Gold II', icon: '🥇', color: 'text-yellow-400' };
+            if (s < 9000) return { name: 'Gold III', icon: '🥇', color: 'text-yellow-400' };
+            if (s < 12000) return { name: 'Platinum I', icon: '💠', color: 'text-cyan-400' };
+            if (s < 15000) return { name: 'Platinum II', icon: '💠', color: 'text-cyan-400' };
+            if (s < 18000) return { name: 'Platinum III', icon: '💠', color: 'text-cyan-400' };
+            if (s < 22000) return { name: 'Diamond I', icon: '💎', color: 'text-blue-400' };
+            if (s < 26000) return { name: 'Diamond II', icon: '💎', color: 'text-blue-400' };
+            if (s < 30000) return { name: 'Diamond III', icon: '💎', color: 'text-blue-400' };
+            if (s < 40000) return { name: 'Elite', icon: '🦅', color: 'text-red-500' };
+            if (s < 55000) return { name: 'Champion', icon: '🏆', color: 'text-orange-500' };
+            return { name: 'Unreal', icon: '🌌', color: 'text-purple-500' };
+        }
+
+        function saveToLeaderboard(name, score, mode) {
+            if (mode !== 'endless') return; // Enkel score opslaan in ranked/endless
+            
+            const board = getLeaderboard();
+            board.push({ name: name || 'Anoniem', score, mode });
+            board.sort((a, b) => b.score - a.score);
+            const top10 = board.slice(0, 10);
+            localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(top10));
+        }
+
+        function showLeaderboard() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('leaderboard-screen').classList.remove('hidden');
+            
+            const board = getLeaderboard();
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+
+            board.forEach((entry, index) => {
+                let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                let rank = getRank(entry.score);
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/50 transition">
+                        <td class="px-4 py-3 font-bold text-amber-400">${medal}</td>
+                        <td class="px-4 py-3 font-semibold text-slate-100">${entry.name}</td>
+                        <td class="px-4 py-3 text-xs font-bold ${rank.color}">${rank.icon} ${rank.name}</td>
+                        <td class="px-4 py-3 text-right font-bold text-emerald-300">${entry.score}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function hideLeaderboard() {
+            document.getElementById('leaderboard-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
+
+        function submitScore() {
+            const nameInput = document.getElementById('player-name');
+            if (nameInput.disabled) return;
+            
+            saveToLeaderboard(nameInput.value, score, selectedDifficulty);
+            nameInput.disabled = true;
+            
+            const msg = document.getElementById('submit-msg');
+            msg.classList.remove('hidden');
+            msg.innerText = 'Score succesvol opgeslagen!';
+            
+            setTimeout(() => {
+                exitToMenu();
+                showLeaderboard();
+            }, 1500);
+        }
 
         function exitToMenu() {
             document.getElementById('game-screen').classList.add('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('leaderboard-screen').classList.add('hidden');
             document.getElementById('start-screen').classList.remove('hidden');
             document.getElementById('level-badge').classList.add('hidden');
             document.getElementById('home-btn').classList.add('hidden');
+            
+            document.getElementById('rank-display-container').classList.add('hidden');
+            document.getElementById('rank-display-container').classList.remove('flex');
         }
 
         function selectLevel(level) {
             selectedDifficulty = level;
-            const levels = ['easy', 'medium', 'hard'];
+            const levels = ['easy', 'medium', 'hard', 'endless'];
             
             levels.forEach(lvl => {
                 const btn = document.getElementById(`lvl-${lvl}`);
+                if (!btn) return;
+
                 if (lvl === level) {
-                    btn.className = `level-btn border-2 border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-emerald-500/20 shadow-md`;
+                    if (lvl === 'endless') {
+                        btn.className = `level-btn border-2 border-indigo-500 bg-indigo-500/10 text-indigo-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 hover:bg-indigo-500/20 w-full max-w-md mx-auto shadow-md scale-105`;
+                    } else {
+                        btn.className = `level-btn border-2 border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-emerald-500/20 shadow-md scale-105`;
+                    }
                 } else {
-                    btn.className = `level-btn border-2 border-slate-700 bg-slate-800 text-slate-400 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-700`;
+                    if (lvl === 'endless') {
+                        btn.className = `level-btn border-2 border-slate-700 bg-slate-800 text-slate-400 font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 hover:bg-slate-700 w-full max-w-md mx-auto`;
+                    } else {
+                        btn.className = `level-btn border-2 border-slate-700 bg-slate-800 text-slate-400 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-700`;
+                    }
                 }
             });
         }
@@ -274,19 +458,45 @@
             maxStreak = 0;
             lives = 3;
             currentQuestionIndex = 0;
+            isEndless = (selectedDifficulty === 'endless');
             
-            // Filter database op gekozen niveau
-            const levelData = flagDatabase[selectedDifficulty];
-            shuffledQuizData = shuffle(levelData);
+            if (isEndless) {
+                // Combineer alle vlaggen voor oneindige modus met hun specifieke punten
+                let allFlags = [
+                    ...flagDatabase.easy.map(f => ({...f, points: 50})),
+                    ...flagDatabase.medium.map(f => ({...f, points: 100})),
+                    ...flagDatabase.hard.map(f => ({...f, points: 200}))
+                ];
+                shuffledQuizData = shuffle(allFlags);
+            } else {
+                // Filter database op gekozen niveau
+                const levelData = flagDatabase[selectedDifficulty];
+                shuffledQuizData = shuffle(levelData);
+            }
 
             // Update badge in header
             const badge = document.getElementById('level-badge');
             badge.classList.remove('hidden');
-            const levelNames = { easy: 'Makkelijk', medium: 'Middelmatig', hard: 'Moeilijk' };
+            const levelNames = { easy: 'Makkelijk', medium: 'Middelmatig', hard: 'Moeilijk', endless: 'Oneindig ♾️' };
             badge.innerText = levelNames[selectedDifficulty];
+
+            // Pas badge kleur aan voor endless
+            if (isEndless) {
+                badge.className = 'text-xs px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold';
+            } else {
+                badge.className = 'text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold';
+            }
 
             // Toon home knop in header
             document.getElementById('home-btn').classList.remove('hidden');
+
+            if (isEndless) {
+                document.getElementById('rank-display-container').classList.remove('hidden');
+                document.getElementById('rank-display-container').classList.add('flex');
+            } else {
+                document.getElementById('rank-display-container').classList.add('hidden');
+                document.getElementById('rank-display-container').classList.remove('flex');
+            }
 
             updateStats();
             
@@ -304,8 +514,14 @@
 
             const current = shuffledQuizData[currentQuestionIndex];
             
-            const progressPercent = ((currentQuestionIndex) / shuffledQuizData.length) * 100;
-            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+            if (isEndless) {
+                document.getElementById('progress-bar').style.width = '100%'; 
+                document.getElementById('progress-bar').classList.add('animate-pulse-subtle');
+            } else {
+                const progressPercent = ((currentQuestionIndex) / shuffledQuizData.length) * 100;
+                document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+                document.getElementById('progress-bar').classList.remove('animate-pulse-subtle');
+            }
 
             const flagImg = document.getElementById('flag-image');
             flagImg.src = `https://flagcdn.com/w640/${current.code}.png`;
@@ -333,16 +549,21 @@
             const allButtons = document.querySelectorAll('.option-btn');
             const isCorrect = selectedChoice === currentData.name;
 
-            // Score multiplier afhankelijk van level
-            const multiplier = selectedDifficulty === 'hard' ? 3 : (selectedDifficulty === 'medium' ? 2 : 1);
-
             if (isCorrect) {
                 playSound('correct');
                 clickedButton.classList.remove('bg-slate-800', 'hover:bg-slate-700', 'border-slate-700');
                 clickedButton.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white');
                 clickedButton.querySelector('.indicator').innerText = '✓';
 
-                score += (100 + (streak * 20)) * multiplier;
+                if (isEndless) {
+                    // Punten gebaseerd op originele moeilijkheidsgraad (50, 100, of 200) plus kleine streak bonus
+                    score += currentData.points + (streak * 10);
+                } else {
+                    // Normale score logica met multiplier
+                    const multiplier = selectedDifficulty === 'hard' ? 3 : (selectedDifficulty === 'medium' ? 2 : 1);
+                    score += (100 + (streak * 20)) * multiplier;
+                }
+
                 streak++;
                 if (streak > maxStreak) maxStreak = streak;
             } else {
@@ -367,10 +588,15 @@
 
             updateStats();
 
-            document.getElementById('fact-text').innerText = currentData.fact;
+            let factText = currentData.fact;
+            if (isEndless) {
+                let diffText = currentData.points === 200 ? '🔥 Moeilijk (200pt)' : currentData.points === 100 ? '⚡ Middelmatig (100pt)' : '🌱 Makkelijk (50pt)';
+                factText = `<strong>${diffText}</strong> - ${factText}`;
+            }
+            document.getElementById('fact-text').innerHTML = factText;
             document.getElementById('fact-box').classList.remove('hidden');
 
-            if (lives <= 0 || currentQuestionIndex >= shuffledQuizData.length - 1) {
+            if (lives <= 0 || (!isEndless && currentQuestionIndex >= shuffledQuizData.length - 1)) {
                 setTimeout(endGame, 1500);
             } else {
                 document.getElementById('next-btn').classList.remove('hidden');
@@ -379,6 +605,13 @@
 
         function nextQuestion() {
             currentQuestionIndex++;
+            
+            // In oneindige modus: als we door alle vlaggen heen zijn, husselen we ze opnieuw!
+            if (isEndless && currentQuestionIndex >= shuffledQuizData.length) {
+                shuffledQuizData = shuffle(shuffledQuizData);
+                currentQuestionIndex = 0;
+            }
+            
             loadQuestion();
         }
 
@@ -386,6 +619,16 @@
             document.getElementById('score-display').innerText = score;
             document.getElementById('streak-display').innerText = streak;
             document.getElementById('lives-display').innerText = '❤️'.repeat(Math.max(0, lives));
+
+            if (isEndless) {
+                const rank = getRank(score);
+                const rankIcon = document.getElementById('rank-icon');
+                const rankName = document.getElementById('rank-name');
+                
+                rankIcon.innerText = rank.icon;
+                rankName.innerText = rank.name;
+                rankName.className = `text-xs sm:text-sm font-bold ${rank.color}`;
+            }
         }
 
         function endGame() {
@@ -399,10 +642,32 @@
             document.getElementById('best-streak').innerText = maxStreak;
 
             const statsText = lives <= 0 
-                ? 'Helaas, al je levens zijn op! Oefen nog eens op een lager niveau.' 
-                : 'Gefeliciteerd! Je hebt alle vlaggen uit dit niveau gehaald!';
+                ? 'Helaas, al je levens zijn op! Goed geprobeerd.' 
+                : 'Gefeliciteerd! Je hebt alle vlaggen gehaald!';
             
             document.getElementById('final-stats').innerText = statsText;
+
+            // Reset het score-submit formulier
+            document.getElementById('player-name').disabled = false;
+            document.getElementById('player-name').value = '';
+            document.getElementById('submit-msg').classList.add('hidden');
+            
+            if (isEndless) {
+                const finalRank = getRank(score);
+                document.getElementById('final-rank-container').classList.remove('hidden');
+                const finalRankDiv = document.getElementById('final-rank');
+                finalRankDiv.innerText = `${finalRank.icon} ${finalRank.name}`;
+                finalRankDiv.className = `text-2xl font-bold ${finalRank.color}`;
+            } else {
+                document.getElementById('final-rank-container').classList.add('hidden');
+            }
+            
+            // Verberg submit formulier als het NIET endless is (want leaderboard is ranked only) of score is 0
+            if (!isEndless || score === 0) {
+                document.getElementById('leaderboard-submit-section').classList.add('hidden');
+            } else {
+                document.getElementById('leaderboard-submit-section').classList.remove('hidden');
+            }
         }
     </script>
 </body>
