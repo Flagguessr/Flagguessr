@@ -1,673 +1,1047 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlagGuessr - De Ultieme Vlaggen Quiz</title>
-    <!-- Tailwind CSS voor strakke styling -->
+    <title>AKGuessr - Educatief Aardrijkskunde Platform</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PeerJS for Multiplayer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
     <style>
-        @keyframes pulse-subtle {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .animate-pulse-subtle {
-            animation: pulse-subtle 2s infinite ease-in-out;
-        }
-        .flag-shadow {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+        .flag-shadow { box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.5); }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .pulse-animation { animation: pulse-ring 2s infinite ease-in-out; }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.97); opacity: 0.9; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(0.97); opacity: 0.9; }
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-emerald-500/30 overflow-x-hidden">
 
-    <!-- Header / Scoreboard -->
-    <header class="w-full max-w-4xl mx-auto p-4 flex justify-between items-center border-b border-slate-800">
-        <div class="flex items-center gap-2">
-            <button id="home-btn" onclick="exitToMenu()" class="hidden text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition mr-1 flex items-center gap-1 text-xs font-semibold" title="Terug naar hoofdmenu">
-                <span>🏠</span> <span class="hidden sm:inline">Menu</span>
-            </button>
-            <span class="text-2xl">📍</span>
-            <h1 class="text-xl font-bold bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent tracking-wide">
-                Flag<span class="text-amber-400">Guessr</span>
-            </h1>
-            <span id="level-badge" class="hidden text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold"></span>
-        </div>
-        
-        <div class="flex items-center gap-6 text-sm md:text-base font-semibold">
-            <div id="rank-display-container" class="hidden items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
-                <span id="rank-icon" class="text-base">🥉</span>
-                <span id="rank-name" class="text-slate-200 text-xs sm:text-sm font-bold">Unranked</span>
-            </div>
-            <div class="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
-                <span class="text-rose-500">❤️</span>
-                <span id="lives-display" class="text-slate-200">3</span>
-            </div>
-            <div class="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
-                <span class="text-amber-400">🔥</span>
-                <span id="streak-display" class="text-amber-300">0</span>
-            </div>
-            <div class="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
-                <span class="text-emerald-400">⭐</span>
-                <span id="score-display" class="text-emerald-300">0</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Game Container -->
-    <main class="w-full max-w-2xl mx-auto px-4 py-6 flex-grow flex flex-col justify-center items-center">
-        
-        <!-- Start Screen -->
-        <div id="start-screen" class="w-full bg-slate-800/80 backdrop-blur border border-slate-700 rounded-2xl p-8 text-center shadow-xl">
-            <div class="text-6xl mb-4 animate-bounce">🌍</div>
-            <h2 class="text-3xl font-extrabold mb-2 text-white">Welkom bij <span class="text-emerald-400">Flag</span><span class="text-amber-400">Guessr</span>!</h2>
-            <p class="text-slate-300 mb-6 max-w-md mx-auto leading-relaxed text-sm sm:text-base">
-                Herken jij de vlaggen van de wereld? Kies je niveau en ontdek of jij je niet laat foppen door gelijkende vlaggen!
-            </p>
-
-            <!-- Level Selector -->
-            <div class="mb-6">
-                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Kies een Niveau</label>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-md mx-auto mb-3">
-                    <button onclick="selectLevel('easy')" id="lvl-easy" class="level-btn border-2 border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-emerald-500/20 shadow-md scale-105">
-                        <span class="text-lg">🌱</span>
-                        <span>Makkelijk</span>
-                        <span class="text-[10px] font-normal text-emerald-400/80">Bekende vlaggen</span>
-                    </button>
-                    <button onclick="selectLevel('medium')" id="lvl-medium" class="level-btn border-2 border-slate-700 bg-slate-800 text-slate-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-700">
-                        <span class="text-lg">⚡</span>
-                        <span>Middelmatig</span>
-                        <span class="text-[10px] font-normal text-slate-400">Lichte strikvragen</span>
-                    </button>
-                    <button onclick="selectLevel('hard')" id="lvl-hard" class="level-btn border-2 border-slate-700 bg-slate-800 text-slate-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-700">
-                        <span class="text-lg">🔥</span>
-                        <span>Moeilijk</span>
-                        <span class="text-[10px] font-normal text-slate-400">Extreme doppelgängers</span>
-                    </button>
+    <nav class="w-full border-b border-slate-800/80 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <button id="nav-home-btn" onclick="showDashboard()" class="hidden text-slate-300 hover:text-white transition flex items-center gap-2 text-xs font-bold bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                    ⬅️ Menu
+                </button>
+                <div class="flex items-center gap-2 cursor-pointer" onclick="showDashboard()">
+                    <span class="text-2xl">🎓</span>
+                    <h1 class="text-xl font-extrabold tracking-tight text-white">AK<span class="text-emerald-400">GUESSR</span></h1>
                 </div>
-                <button onclick="selectLevel('endless')" id="lvl-endless" class="level-btn border-2 border-slate-700 bg-slate-800 text-slate-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 hover:bg-slate-700 w-full max-w-md mx-auto">
-                    <span class="text-lg">♾️</span>
-                    <span>Oneindige Modus</span>
-                    <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">(Alles door elkaar!)</span>
-                </button>
             </div>
-
-            <div class="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-                <button onclick="startGame()" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3.5 px-6 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 text-lg">
-                    Start Quiz 🚀
-                </button>
-                <button onclick="showLeaderboard()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3.5 px-6 rounded-xl transition duration-200 shadow-lg active:scale-95 text-lg flex items-center justify-center gap-2">
-                    <span>🏆</span> Leaderboard
-                </button>
-            </div>
-        </div>
-
-        <!-- Gameplay Screen -->
-        <div id="game-screen" class="w-full hidden flex flex-col items-center">
             
-            <!-- Exit level bar -->
-            <div class="w-full flex justify-between items-center mb-3">
-                <button onclick="exitToMenu()" class="text-xs text-slate-400 hover:text-slate-100 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg transition duration-200 flex items-center gap-1.5">
-                    <span>⬅️</span> Terug naar Menu
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    StudyGo Leermodus
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="w-full max-w-6xl mx-auto px-4 py-8 flex-grow flex flex-col items-center justify-center relative">
+        
+        <!-- DASHBOARD / HOME SCREEN -->
+        <div id="dashboard-screen" class="w-full space-y-6">
+            
+            <div class="text-center max-w-2xl mx-auto mb-6">
+                <h2 class="text-3xl md:text-4xl font-black text-white mb-2">Aardrijkskunde Leren & Oefenen</h2>
+                <p class="text-slate-400 text-sm md:text-base">Kies een categorie en niveau om te oefenen voor je toets of speel samen via Kahoot PIN!</p>
+            </div>
+
+            <!-- Two Main Categories Side-by-Side -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                
+                <!-- CATEGORY 1: VLAGGENGUESSR -->
+                <div class="glass-card rounded-2xl p-6 flex flex-col justify-between border-t-4 border-t-emerald-500 shadow-2xl transition hover:-translate-y-1">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-3xl">🚩</span>
+                            <span class="text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full">Vlaggen Kennis</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">VlaggenGuessr</h3>
+                        <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+                            Oefen alle landsvlaggen ter wereld. Herken verschillen tussen vlaggen die erg op elkaar lijken!
+                        </p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Kies Niveau</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="startQuiz('vlaggen', 'easy')" class="bg-slate-900 hover:bg-emerald-950 hover:border-emerald-500/50 border border-slate-700 rounded-xl p-3 text-left transition group flex items-center gap-3">
+                                <span class="text-xl">🌱</span>
+                                <div>
+                                    <div class="text-xs font-bold text-white group-hover:text-emerald-400">Makkelijk</div>
+                                    <div class="text-[10px] text-slate-400">Bekende landen</div>
+                                </div>
+                            </button>
+
+                            <button onclick="startQuiz('vlaggen', 'medium')" class="bg-slate-900 hover:bg-emerald-950 hover:border-emerald-500/50 border border-slate-700 rounded-xl p-3 text-left transition group flex items-center gap-3">
+                                <span class="text-xl">⚡</span>
+                                <div>
+                                    <div class="text-xs font-bold text-white group-hover:text-emerald-400">Middelmatig</div>
+                                    <div class="text-[10px] text-slate-400">Europa & Wereld</div>
+                                </div>
+                            </button>
+
+                            <button onclick="startQuiz('vlaggen', 'hard')" class="bg-slate-900 hover:bg-emerald-950 hover:border-emerald-500/50 border border-slate-700 rounded-xl p-3 text-left transition group flex items-center gap-3">
+                                <span class="text-xl">🔥</span>
+                                <div>
+                                    <div class="text-xs font-bold text-white group-hover:text-emerald-400">Moeilijk</div>
+                                    <div class="text-[10px] text-slate-400">Strikvragen</div>
+                                </div>
+                            </button>
+
+                            <button onclick="startQuiz('vlaggen', 'endless')" class="bg-gradient-to-r from-emerald-900 to-teal-900 hover:from-emerald-800 hover:to-teal-800 border border-emerald-500/40 rounded-xl p-3 text-left transition group flex items-center gap-3">
+                                <span class="text-xl">♾️</span>
+                                <div>
+                                    <div class="text-xs font-extrabold text-emerald-300">Oneindig</div>
+                                    <div class="text-[10px] text-emerald-200/70">Onbeperkt leren</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CATEGORY 2: KÖPPENGUESSR -->
+                <div class="glass-card rounded-2xl p-6 flex flex-col justify-between border-t-4 border-t-sky-500 shadow-2xl transition hover:-translate-y-1">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-3xl">🌡️</span>
+                            <span class="text-xs font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30 px-2.5 py-1 rounded-full">Klimaatgrafieken</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">KöppenGuessr</h3>
+                        <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+                            Leer het Köppen-systeem herkennen aan de hand van temperatuur en neerslag (A, B, C, D en E-klimaten).
+                        </p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Kies Niveau</label>
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <button onclick="startQuiz('koppen', 'easy')" class="bg-slate-900 hover:bg-sky-950 hover:border-sky-500/50 border border-slate-700 rounded-xl p-3 text-left transition group flex items-center gap-3">
+                                <span class="text-xl">🌱</span>
+                                <div>
+                                    <div class="text-xs font-bold text-white group-hover:text-sky-400">Makkelijk</div>
+                                    <div class="text-[10px] text-slate-400">A, B, C, D, E Basis</div>
+                                </div>
+                            </button>
+
+                            <button onclick="startQuiz('koppen', 'medium')" class="bg-slate-900 hover:bg-sky-950 hover:border-sky-500/50 border border-slate-700 rounded-xl p-3 text-left transition group flex items-center gap-3">
+                                <span class="text-xl">⚡</span>
+                                <div>
+                                    <div class="text-xs font-bold text-white group-hover:text-sky-400">Middelmatig</div>
+                                    <div class="text-[10px] text-slate-400">Inclusief kenmerken</div>
+                                </div>
+                            </button>
+
+                            <button onclick="startQuiz('koppen', 'hard')" class="bg-slate-900 hover:bg-sky-950 hover:border-sky-500/50 border border-slate-700 rounded-xl p-3 text-left transition group flex items-center gap-3">
+                                <span class="text-xl">🔥</span>
+                                <div>
+                                    <div class="text-xs font-bold text-white group-hover:text-sky-400">Moeilijk</div>
+                                    <div class="text-[10px] text-slate-400">Alle details</div>
+                                </div>
+                            </button>
+
+                            <button onclick="startQuiz('koppen', 'endless')" class="bg-gradient-to-r from-sky-900 to-blue-900 hover:from-sky-800 hover:to-blue-800 border border-sky-500/40 rounded-xl p-3 text-left transition group flex items-center gap-3">
+                                <span class="text-xl">♾️</span>
+                                <div>
+                                    <div class="text-xs font-extrabold text-sky-300">Oneindig</div>
+                                    <div class="text-[10px] text-sky-200/70">Onbeperkt leren</div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Köppen Multiplayer Button -->
+                        <button onclick="showMultiplayerSetup()" class="w-full bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/30 rounded-xl p-3 text-left transition flex items-center justify-between group">
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">🎮</span>
+                                <span class="text-xs font-bold">Multiplayer Spelen (Kahoot PIN)</span>
+                            </div>
+                            <span class="text-xs bg-sky-500/20 px-2 py-0.5 rounded text-sky-300 font-bold">LIVE</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="mp-setup-screen" class="hidden w-full max-w-xl mx-auto space-y-6">
+            <div class="glass-card rounded-2xl p-6 border-t-4 border-t-sky-500 shadow-2xl">
+                <div class="text-center mb-6">
+                    <span class="text-4xl mb-2 inline-block">🎮</span>
+                    <h2 class="text-2xl font-black text-white">Köppen Multiplayer Lobby</h2>
+                    <p class="text-slate-400 text-xs mt-1">Speel samen via een 6-cijferige PIN code!</p>
+                </div>
+
+                <div id="mp-error-msg" class="hidden bg-rose-500/20 border border-rose-500/40 text-rose-300 px-4 py-2.5 rounded-xl text-xs font-semibold mb-4 text-center"></div>
+
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Jouw Nickname</label>
+                    <input type="text" id="mp-player-name" placeholder="Vul je naam in..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500 font-semibold">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-white mb-1">1. Game Aanmaken</h3>
+                            <p class="text-xs text-slate-400 mb-4">Maak een lobby aan en ontvang een unieke PIN.</p>
+                        </div>
+                        <button id="create-host-btn" onclick="createHostLobby()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md">
+                            Lobby Aanmaken ➕
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-3">
+                        <div>
+                            <h3 class="text-base font-bold text-white mb-1">2. Join met PIN</h3>
+                            <p class="text-xs text-slate-400 mb-3">Vul de PIN van de host in.</p>
+                        </div>
+                        <input type="number" id="mp-pin-input" placeholder="6-cijferige Game PIN" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500 font-mono tracking-widest text-center">
+                        <button id="join-btn" onclick="joinLobbyWithPin()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-lg text-xs transition shadow-md">
+                            Deelnemen 🚀
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="showDashboard()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 rounded-xl text-xs transition border border-slate-700">
+                    ⬅️ Terug naar Menu
                 </button>
             </div>
+        </div>
 
-            <!-- Progress Bar -->
-            <div class="w-full bg-slate-800 h-2 rounded-full mb-6 overflow-hidden">
-                <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-emerald-400 h-full w-0 transition-all duration-300"></div>
-            </div>
+        <div id="mp-lobby-screen" class="hidden w-full max-w-xl mx-auto">
+            <div class="glass-card rounded-2xl p-6 border-t-4 border-t-emerald-500 shadow-2xl text-center">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6">
+                    <span class="text-xs text-slate-400 uppercase font-bold tracking-wider block mb-1">Game PIN Code:</span>
+                    <div id="lobby-pin-display" class="text-4xl font-black text-amber-400 tracking-widest font-mono pulse-animation">
+                        ------
+                    </div>
+                </div>
 
-            <!-- Flag Display -->
-            <div class="mb-8 w-full flex justify-center">
-                <div class="relative group">
-                    <img id="flag-image" src="" alt="Vlag om te raden" 
-                         class="h-44 sm:h-56 object-cover rounded-lg border-4 border-slate-700 flag-shadow transition-transform duration-300">
+                <div class="mb-6">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center justify-center gap-2">
+                        <span>👥 Spelers in Lobby</span>
+                        <span id="lobby-count-badge" class="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-0.5 rounded-full border border-emerald-500/30">1</span>
+                    </h3>
+                    <div id="lobby-players-list" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1"></div>
+                </div>
+
+                <div id="host-controls" class="space-y-2">
+                    <button id="start-mp-game-btn" onclick="startMultiplayerGame()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition shadow-lg">
+                        Start Game voor Iedereen! 🚀
+                    </button>
+                </div>
+                <div id="client-waiting-msg" class="hidden text-sm text-sky-400 font-semibold animate-pulse py-2">
+                    ⏳ Wachten op de host om de game te starten...
                 </div>
             </div>
+        </div>
 
-            <!-- Multiple Choice Grid -->
-            <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full mb-6">
-                <!-- Option buttons injected via JS -->
-            </div>
-
-            <!-- Fact / Explanation Box -->
-            <div id="fact-box" class="w-full bg-slate-800/90 border border-slate-700 rounded-xl p-4 mb-6 hidden animate-fade-in">
-                <div class="flex items-start gap-3">
-                    <span class="text-xl">💡</span>
+        <div id="quiz-screen" class="hidden w-full max-w-2xl mx-auto flex flex-col items-center">
+            
+            <!-- Top Status Bar -->
+            <div class="w-full flex justify-between items-center mb-4 bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 shadow-md">
+                <div class="flex gap-5">
                     <div>
-                        <h4 class="font-bold text-amber-400 text-sm uppercase tracking-wider mb-1">Wist je dat?</h4>
-                        <p id="fact-text" class="text-sm text-slate-300 leading-relaxed"></p>
+                        <div class="text-[10px] text-slate-400 uppercase font-bold">Score</div>
+                        <div id="q-score" class="font-black text-emerald-400 text-lg">0</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 uppercase font-bold">Streak</div>
+                        <div id="q-streak" class="font-black text-amber-400 text-lg">0</div>
+                    </div>
+                </div>
+                
+                <div id="q-mode-badge" class="px-3 py-1 bg-slate-800 text-xs font-bold rounded-lg border border-slate-700 text-sky-400">
+                    Vlaggen - Makkelijk
+                </div>
+
+                <!-- Timer / Lives -->
+                <div class="text-right">
+                    <div id="timer-box" class="hidden">
+                        <div class="text-[10px] text-slate-400 uppercase font-bold">Tijd Over</div>
+                        <div id="q-timer" class="font-black text-amber-400 text-lg font-mono">15s</div>
+                    </div>
+                    <div id="lives-box">
+                        <div class="text-[10px] text-slate-400 uppercase font-bold text-right">Levens</div>
+                        <div id="q-lives" class="font-bold text-rose-500 text-lg">❤️❤️❤️</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Next Question Button -->
-            <button id="next-btn" onclick="nextQuestion()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-xl transition duration-200 hidden shadow-md">
+            <!-- VLAGGEN CONTAINER -->
+            <div id="vlaggen-container" class="hidden w-full flex flex-col items-center">
+                <img id="v-flag" src="" alt="Vlag" class="h-48 md:h-56 object-cover rounded-xl border-4 border-slate-800 flag-shadow mb-6">
+            </div>
+
+            <!-- KÖPPEN CONTAINER (CANVAS CLIMATE DIAGRAM) -->
+            <div id="koppen-container" class="hidden w-full flex flex-col items-center mb-6">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl w-full flex flex-col items-center shadow-lg">
+                    <div class="flex justify-between items-center w-full mb-2">
+                        <span id="k-location" class="text-sm font-bold text-white">Locatie: Amsterdam</span>
+                        <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">🔴 Temp (°C) | 🔵 Neerslag (mm)</span>
+                    </div>
+                    <!-- Climate Graph Canvas -->
+                    <canvas id="climateCanvas" width="500" height="220" class="w-full max-w-lg bg-slate-950 rounded-lg border border-slate-800"></canvas>
+                </div>
+            </div>
+
+            <!-- Question Options A, B, C, D -->
+            <div id="q-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full mb-4"></div>
+
+            <!-- StudyGo Educational Explanation Box -->
+            <div id="q-explanation" class="hidden w-full bg-slate-900/95 border border-amber-500/30 p-4 rounded-xl mb-4 text-xs text-slate-300 leading-relaxed shadow-lg">
+                <span class="font-bold text-amber-400 text-sm block mb-1" id="exp-title">💡 StudyGo Uitleg:</span>
+                <span id="exp-text">--</span>
+            </div>
+
+            <button id="q-next" onclick="nextQuestion()" class="hidden w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 rounded-xl transition shadow-lg shadow-emerald-950/50">
                 Volgende Vraag ➔
             </button>
         </div>
 
-        <!-- Game Over Screen -->
-        <div id="game-over-screen" class="w-full bg-slate-800/80 backdrop-blur border border-slate-700 rounded-2xl p-8 text-center shadow-xl hidden">
-            <div class="text-6xl mb-4">🏆</div>
-            <h2 class="text-3xl font-bold mb-2 text-white">Game Over!</h2>
-            <p id="final-stats" class="text-slate-300 mb-6"></p>
-            
-            <div class="bg-slate-900/60 rounded-xl p-4 mb-6 border border-slate-700/50 flex justify-around">
-                <div>
-                    <div class="text-xs text-slate-400 uppercase">Eindscore</div>
-                    <div id="final-score" class="text-2xl font-bold text-emerald-400">0</div>
-                </div>
-                <div id="final-rank-container" class="hidden">
-                    <div class="text-xs text-slate-400 uppercase">Rank</div>
-                    <div id="final-rank" class="text-2xl font-bold">🥉 Bronze I</div>
-                </div>
-                <div>
-                    <div class="text-xs text-slate-400 uppercase">Hoogste Streak</div>
-                    <div id="best-streak" class="text-2xl font-bold text-amber-400">0</div>
-                </div>
-            </div>
-
-            <div id="leaderboard-submit-section" class="mb-6 bg-slate-700/30 p-4 rounded-xl border border-slate-600">
-                <label class="block text-sm font-semibold text-slate-300 mb-2">Plaats je score op het Ranked Leaderboard!</label>
-                <div class="flex gap-2">
-                    <input type="text" id="player-name" placeholder="Jouw naam..." maxlength="15" class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white outline-none focus:border-emerald-500">
-                    <button onclick="submitScore()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">Opslaan</button>
-                </div>
-                <p id="submit-msg" class="text-xs text-emerald-400 mt-2 hidden">Score succesvol opgeslagen!</p>
-            </div>
-
-            <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <button onclick="startGame()" class="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-xl transition duration-200 shadow-lg active:scale-95">
-                    Opnieuw Spelen 🔄
+        <div id="mp-scoreboard-screen" class="hidden w-full max-w-xl mx-auto">
+            <div class="glass-card rounded-2xl p-6 border-t-4 border-t-amber-500 shadow-2xl text-center">
+                <div class="text-3xl mb-1">🏆</div>
+                <h2 class="text-2xl font-black text-white mb-4" id="mp-sb-title">Ronde Scorebord</h2>
+                <div id="mp-rankings-list" class="space-y-2 mb-6"></div>
+                <button id="mp-next-question-btn" onclick="hostTriggersNextQuestion()" class="hidden w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl transition shadow-lg">
+                    Volgende Vraag ➔
                 </button>
-                <button onclick="exitToMenu()" class="w-full sm:w-auto bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl transition duration-200 shadow-lg active:scale-95">
-                    Kies Niveau 🏠
-                </button>
+                <div id="mp-waiting-next-msg" class="hidden text-xs text-slate-400 animate-pulse">
+                    Wachten op de host voor de volgende ronde...
+                </div>
             </div>
         </div>
 
-        <!-- Leaderboard Screen -->
-        <div id="leaderboard-screen" class="w-full bg-slate-800/80 backdrop-blur border border-slate-700 rounded-2xl p-6 sm:p-8 text-center shadow-xl hidden">
-            <div class="text-5xl mb-4">🌍</div>
-            <h2 class="text-3xl font-bold mb-6 text-white">Wereldwijde <span class="text-amber-400">Topscores</span></h2>
+        <div id="game-over-screen" class="hidden w-full max-w-md mx-auto bg-slate-900/95 border border-slate-800 rounded-2xl p-6 text-center shadow-2xl">
+            <div class="text-4xl mb-2">🎓</div>
+            <h2 class="text-3xl font-black mb-1 text-white" id="go-title">Goed geoefend!</h2>
+            <p id="go-subtitle" class="text-slate-400 text-sm mb-6 font-medium">Je resultaten:</p>
             
-            <div class="bg-slate-900/80 rounded-xl border border-slate-700 overflow-hidden mb-6">
-                <table class="w-full text-left text-sm text-slate-300">
-                    <thead class="bg-slate-800 text-slate-400 uppercase text-xs">
-                        <tr>
-                            <th class="px-4 py-3">#</th>
-                            <th class="px-4 py-3">Speler</th>
-                            <th class="px-4 py-3">Rank</th>
-                            <th class="px-4 py-3 text-right">Score</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-body" class="divide-y divide-slate-700/50">
-                        <!-- Rijen via JS -->
-                    </tbody>
-                </table>
+            <div class="bg-slate-950 rounded-xl p-5 mb-6 border border-slate-800 grid grid-cols-2 gap-4">
+                <div class="border-r border-slate-800">
+                    <div class="text-xs text-slate-500 uppercase font-bold mb-1">Eindscore</div>
+                    <div id="go-score" class="text-3xl font-black text-emerald-400">0</div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500 uppercase font-bold mb-1">Hoogste Streak</div>
+                    <div id="go-streak" class="text-3xl font-black text-amber-400">0</div>
+                </div>
             </div>
 
-            <button onclick="hideLeaderboard()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl transition duration-200 shadow-lg active:scale-95 flex items-center justify-center gap-2">
-                <span>⬅️</span> Terug naar Menu
-            </button>
+            <div class="space-y-2">
+                <button onclick="retryCurrentGame()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg">
+                    Opnieuw Spelen 🔄
+                </button>
+                <button onclick="showDashboard()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl transition border border-slate-700">
+                    Terug naar Menu 🏠
+                </button>
+            </div>
         </div>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800">
-        Aardrijkskunde Edu-Game &bull; Test je kennis van gelijkende vlaggen
-    </footer>
-
-    <!-- Game Logic -->
     <script>
-        // Database gecategoriseerd per niveau
-        const flagDatabase = {
-            easy: [
-                { code: 'fr', name: 'Frankrijk', similar: ['Nederland', 'Italië', 'België'], fact: 'De Franse "Tricolore" heeft blauw, wit en rood in verticale banen.' },
-                { code: 'de', name: 'Duitsland', similar: ['België', 'Oostenrijk', 'Spanje'], fact: 'Duitsland gebruikt zwart, rood en goud horizontaal.' },
-                { code: 'us', name: 'Verenigde Staten', similar: ['Liberia', 'Maleisië', 'Griekenland'], fact: 'De VS heeft 50 sterren voor elke staat en 13 strepen voor de oorspronkelijke kolonies.' },
-                { code: 'jp', name: 'Japan', similar: ['Bangladesh', 'Palau', 'Zuid-Korea'], fact: 'De rode cirkel op de Japanse vlag stelt de opgaande zon voor.' },
-                { code: 'br', name: 'Brazilië', similar: ['Argentinië', 'Colombia', 'Jamaica'], fact: 'De bol op de Braziliaanse vlag toont de nachtelijke hemel zoals die te zien was boven Rio de Janeiro in 1889.' },
-                { code: 'ca', name: 'Canada', similar: ['Peru', 'Oostenrijk', 'Zwitserland'], fact: 'Het esdoornblad (maple leaf) is sinds 1965 het officiële symbool op de Canadese vlag.' },
-                { code: 'it', name: 'Italië', similar: ['Frankrijk', 'Ierland', 'Hongarije'], fact: 'De Italiaanse vlag lijkt op de Franse, maar heeft groen in plaats van blauw.' },
-                { code: 'es', name: 'Spanje', similar: ['Portugal', 'Andorra', 'Geel-Rood'], fact: 'De middelste gele baan op de Spaanse vlag is twee keer zo breed als de rode banen.' },
-                { code: 'gb', name: 'Verenigd Koninkrijk', similar: ['Australië', 'Nieuw-Zeeland', 'Fiji'], fact: 'De "Union Jack" is een combinatie van de kruizen van Engeland, Schotland en Ierland.' },
-                { code: 'tr', name: 'Turkije', similar: ['Tunesië', 'Pakistan', 'Algerije'], fact: 'De ster en halve maan zijn traditionele symbolen van de islam en het Ottomaanse Rijk.' },
-                { code: 'sa', name: 'Saoedi-Arabië', similar: ['Pakistan', 'Iran', 'Libië'], fact: 'Op de vlag staat de islamitische geloofsbelijdenis (Sjahada) en een zwaard.' },
-                { code: 'il', name: 'Israël', similar: ['Griekenland', 'Honduras', 'Argentinië'], fact: 'De vlag toont een blauwe davidster tussen twee horizontale blauwe strepen, wat een gebedssjaal (talliet) symboliseert.' }
-            ],
-            medium: [
-                { code: 'nl', name: 'Nederland', similar: ['Luxemburg', 'Frankrijk', 'Rusland'], fact: 'De vlag van Luxemburg lijkt sterk op die van Nederland, maar Luxemburg gebruikt een lichtere tint blauw.' },
-                { code: 'lu', name: 'Luxemburg', similar: ['Nederland', 'Frankrijk', 'Paraguay'], fact: 'Luxemburg gebruikt hemelsblauw, terwijl Nederland marineblauw gebruikt.' },
-                { code: 'ie', name: 'Ierland', similar: ['Ivoorkust', 'Italië', 'India'], fact: 'Ivoorkust heeft exact dezelfde kleuren als Ierland (groen, wit, oranje), maar dan gespiegeld!' },
-                { code: 'ci', name: 'Ivoorkust', similar: ['Ierland', 'Italië', 'Niger'], fact: 'Ivoorkust begint met oranje aan de stokzijde, terwijl Ierland begint met groen.' },
-                { code: 'nz', name: 'Nieuw-Zeeland', similar: ['Australië', 'Verenigd Koninkrijk', 'Fiji'], fact: 'Nieuw-Zeeland heeft vier rode sterren met een witte rand. Australië heeft zes witte sterren.' },
-                { code: 'au', name: 'Australië', similar: ['Nieuw-Zeeland', 'Verenigd Koninkrijk', 'Tuvalu'], fact: 'Australië heeft de grote 7-puntige "Commonwealth Star" onder de Union Jack staan.' },
-                { code: 'co', name: 'Colombia', similar: ['Ecuador', 'Venezuela', 'Roemenië'], fact: 'Bij Colombia is de gele baan twee keer zo breed als de blauwe en rode baan.' },
-                { code: 'ec', name: 'Ecuador', similar: ['Colombia', 'Venezuela', 'Bolivia'], fact: 'Ecuador heeft precies dezelfde gele, blauwe en rode banen als Colombia, maar met het wapenschild in het midden.' },
-                { code: 'no', name: 'Noorwegen', similar: ['IJsland', 'Denemarken', 'Finland'], fact: 'Noorwegen heeft een blauw kruis met witte randen op een rode achtergrond.' },
-                { code: 'is', name: 'IJsland', similar: ['Noorwegen', 'Faeröer', 'Denemarken'], fact: 'IJsland spiegelt de kleuren van Noorwegen: blauw veld, wit omrand rood kruis.' },
-                { code: 'ae', name: 'Verenigde Arabische Emiraten', similar: ['Koeweit', 'Jordanië', 'Soedan'], fact: 'De VAE-vlag heeft een verticale rode baan aan de linkerkant en horizontaal groen, wit en zwart.' },
-                { code: 'kw', name: 'Koeweit', similar: ['VAE', 'Jordanië', 'Palestina'], fact: 'In plaats van een driehoek of verticale baan, heeft Koeweit een zwarte trapeze aan de linkerkant.' },
-                { code: 'ir', name: 'Iran', similar: ['Tadzjikistan', 'Hongarije', 'India'], fact: 'In de randen van de groene en rode baan staat 22 keer "Allahu Akbar" (God is de grootste) geschreven.' },
-                { code: 'sy', name: 'Syrië', similar: ['Irak', 'Jemen', 'Egypte'], fact: 'Syrië heeft twee groene sterren in de middelste witte baan, die oorspronkelijk Syrië en Egypte voorstelden.' },
-                { code: 'iq', name: 'Irak', similar: ['Syrië', 'Jemen', 'Egypte'], fact: 'Irak heeft de Takbir ("Allahu Akbar") in groen Koefisch schrift in het midden van de witte baan.' },
-                { code: 'eg', name: 'Egypte', similar: ['Jemen', 'Syrië', 'Irak'], fact: 'Egypte heeft de gouden "Adelaar van Saladin" in het midden van de vlag.' },
-                { code: 'lb', name: 'Libanon', similar: ['Oostenrijk', 'Peru', 'Frans-Polynesië'], fact: 'De Libanese ceder in het midden is een historisch symbool van heiligheid, eeuwigheid en vrede.' },
-                { code: 'om', name: 'Oman', similar: ['VAE', 'Madagaskar', 'Koeweit'], fact: 'Oman heeft linksboven het nationale embleem: een kromdolk (khanjar) gekruist met twee zwaarden.' }
-            ],
-            hard: [
-                { code: 'id', name: 'Indonesië', similar: ['Polen', 'Monaco', 'Singapore'], fact: 'De vlag van Indonesië is vrijwel identiek aan die van Monaco, maar heeft een langere verhouding (2:3 vs 4:5).' },
-                { code: 'mc', name: 'Monaco', similar: ['Indonesië', 'Polen', 'Singapore'], fact: 'Monaco gebruikt dezelfde rood-witte kleuren als Indonesië, maar de vlag van Monaco is officieel iets vierkanter.' },
-                { code: 'pl', name: 'Polen', similar: ['Indonesië', 'Monaco', 'Tsjechië'], fact: 'Polen heeft het wit boven en rood onder. Dit is exact het omgekeerde van Indonesië!' },
-                { code: 'td', name: 'Tjaad', similar: ['Roemenië', 'Andorra', 'Mali'], fact: 'De vlaggen van Tjaad en Roemenië zijn vrijwel identiek; Tjaad gebruikt enkel een klein fractietje donkerder blauw.' },
-                { code: 'ro', name: 'Roemenië', similar: ['Tjaad', 'Andorra', 'Moldavië'], fact: 'Toen Roemenië het communistische embleem schrapte, werden de vlaggen van Tjaad en Roemenië identiek.' },
-                { code: 'ml', name: 'Mali', similar: ['Guinee', 'Senegal', 'Ghana'], fact: 'Mali is groen-geel-rood. Guinee heeft exact dezelfde Pan-Afrikaanse kleuren, maar gespiegeld: rood-geel-groen.' },
-                { code: 'gn', name: 'Guinee', similar: ['Mali', 'Kameroen', 'Ghana'], fact: 'Guinee gebruikt rood-geel-groen verticaal. Rood staat voor het bloed van de martelaren.' },
-                { code: 'qa', name: 'Qatar', similar: ['Bahrein', 'Letland', 'Verenigde Arabische Emiraten'], fact: 'Qatar gebruikt maroon-rood met 9 kartels. Bahrein gebruikt lichter rood met slechts 5 kartels.' },
-                { code: 'bh', name: 'Bahrein', similar: ['Qatar', 'Oman', 'Tunesië'], fact: 'Bahrein heeft 5 witte driehoeken (kartels) die de 5 pijlers van de islam voorstellen.' },
-                { code: 'jo', name: 'Jordanië', similar: ['Palestina', 'Soedan', 'Westelijke Sahara'], fact: 'Jordanië lijkt enorm op Palestina, maar heeft een zevenpuntige witte ster in de rode driehoek.' },
-                { code: 'ps', name: 'Palestina', similar: ['Jordanië', 'Soedan', 'Koeweit'], fact: 'De vlag is bijna gelijk aan die van Jordanië, maar mist de ster. Soedan heeft de groene en zwarte baan omgedraaid.' },
-                { code: 'ye', name: 'Jemen', similar: ['Syrië', 'Egypte', 'Irak'], fact: 'Jemen gebruikt de bekende rood-wit-zwarte strepen, maar als enige Arabische land zonder enig symbool erin.' },
-                { code: 'sd', name: 'Soedan', similar: ['Palestina', 'Jordanië', 'Koeweit'], fact: 'Let op de kleuren: in tegenstelling tot Palestina heeft Soedan de groene kleur in de driehoek, en niet als streep.' },
-                { code: 'sk', name: 'Slowakije', similar: ['Slovenië', 'Servië', 'Rusland'], fact: 'Slowakije heeft een dubbel patriarchen-kruis op drie bergen in het schild, Slovenië heeft het schild met sterren en een berg.' },
-                { code: 'si', name: 'Slovenië', similar: ['Slowakije', 'Servië', 'Kroatië'], fact: 'Het schild toont de berg Triglav en drie gouden sterren. De vlag lijkt sterk op die van Slowakije.' }
-            ]
-        };
+        const vlaggenDB = [
+            // Makkelijk
+            { code: 'nl', name: 'Nederland', diff: 'easy', distractors: ['Luxemburg', 'Frankrijk', 'Paraguay'] },
+            { code: 'be', name: 'België', diff: 'easy', distractors: ['Duitsland', 'Roemenië', 'Tjaad'] },
+            { code: 'de', name: 'Duitsland', diff: 'easy', distractors: ['België', 'Oostenrijk', 'Hongarije'] },
+            { code: 'fr', name: 'Frankrijk', diff: 'easy', distractors: ['Italië', 'Nederland', 'Luxemburg'] },
+            { code: 'us', name: 'Verenigde Staten', diff: 'easy', distractors: ['Liberia', 'Maleisië', 'Uruguay'] },
+            { code: 'gb', name: 'Verenigd Koninkrijk', diff: 'easy', distractors: ['Australië', 'Nieuw-Zeeland', 'IJsland'] },
+            { code: 'es', name: 'Spanje', diff: 'easy', distractors: ['Portugal', 'Andorra', 'Moldavië'] },
+            { code: 'it', name: 'Italië', diff: 'easy', distractors: ['Ierland', 'Mexico', 'Hongarije'] },
+            { code: 'jp', name: 'Japan', diff: 'easy', distractors: ['Zuid-Korea', 'Bangladesh', 'Palau'] },
+            { code: 'br', name: 'Brazilië', diff: 'easy', distractors: ['Argentinië', 'Colombia', 'Jamaica'] },
+            
+            // Medium
+            { code: 'se', name: 'Zweden', diff: 'medium', distractors: ['Finland', 'Noorwegen', 'Denemarken'] },
+            { code: 'no', name: 'Noorwegen', diff: 'medium', distractors: ['IJsland', 'Zweden', 'Denemarken'] },
+            { code: 'ie', name: 'Ierland', diff: 'medium', distractors: ['Ivoorkust', 'Italië', 'India'] },
+            { code: 'at', name: 'Oostenrijk', diff: 'medium', distractors: ['Letland', 'Polen', 'Zwitserland'] },
+            { code: 'za', name: 'Zuid-Afrika', diff: 'medium', distractors: ['Vanuatu', 'Zimbabwe', 'Kenia'] },
+            { code: 'gr', name: 'Griekenland', diff: 'medium', distractors: ['Uruguay', 'Finland', 'Cyprus'] },
+            { code: 'tr', name: 'Turkije', diff: 'medium', distractors: ['Tunesië', 'Pakistan', 'Azerbeidzjan'] },
+            { code: 'eg', name: 'Egypte', diff: 'medium', distractors: ['Syrië', 'Irak', 'Jemen'] },
 
-        // Game State
-        let selectedDifficulty = 'easy';
-        let currentQuestionIndex = 0;
+            // Moeilijk
+            { code: 'id', name: 'Indonesië', diff: 'hard', distractors: ['Monaco', 'Polen', 'Singapore'] },
+            { code: 'mc', name: 'Monaco', diff: 'hard', distractors: ['Indonesië', 'Polen', 'Singapore'] },
+            { code: 'td', name: 'Tjaad', diff: 'hard', distractors: ['Roemenië', 'Andorra', 'Moldavië'] },
+            { code: 'ro', name: 'Roemenië', diff: 'hard', distractors: ['Tjaad', 'Andorra', 'Moldavië'] },
+            { code: 'ci', name: 'Ivoorkust', diff: 'hard', distractors: ['Ierland', 'Italië', 'Guinee'] }
+        ];
+
+        const koppenDB = [
+            {
+                id: 'mana',
+                location: 'Manaus (Brazilië)',
+                diff: 'easy',
+                mainCode: 'A-klimaat',
+                fullName: 'A-klimaat: Tropisch Klimaat',
+                temp: [27, 27, 27, 27, 27, 27, 28, 28, 28, 28, 28, 27],
+                precip: [260, 290, 310, 300, 200, 110, 60, 50, 80, 110, 160, 220],
+                distractors: ['B-klimaat: Droog Klimaat', 'C-klimaat: Gematigd Zeeklimaat', 'E-klimaat: Polair Klimaat'],
+                exp: 'A-klimaat (Tropisch): Het hele jaar door erg warm (gemiddelde temperatuur koudste maand is hoger dan 18°C).'
+            },
+            {
+                id: 'cair',
+                location: 'Caïro (Egypte)',
+                diff: 'easy',
+                mainCode: 'B-klimaat',
+                fullName: 'B-klimaat: Droog Klimaat',
+                temp: [13, 15, 18, 22, 26, 28, 29, 29, 27, 24, 19, 15],
+                precip: [5, 4, 3, 1, 1, 0, 0, 0, 0, 1, 3, 6],
+                distractors: ['A-klimaat: Tropisch Klimaat', 'C-klimaat: Gematigd Zeeklimaat', 'D-klimaat: Landklimaat'],
+                exp: 'B-klimaat (Droog): Er valt extreem weinig neerslag gedurende het hele jaar (woestijn of steppe).'
+            },
+            {
+                id: 'ams',
+                location: 'Amsterdam (Nederland)',
+                diff: 'easy',
+                mainCode: 'C-klimaat',
+                fullName: 'C-klimaat: Gematigd Zeeklimaat',
+                temp: [3, 4, 7, 10, 13, 16, 18, 18, 15, 11, 7, 4],
+                precip: [70, 55, 60, 45, 55, 65, 75, 85, 75, 80, 80, 80],
+                distractors: ['D-klimaat: Landklimaat', 'E-klimaat: Polair Klimaat', 'A-klimaat: Tropisch Klimaat'],
+                exp: 'C-klimaat (Gematigd zeeklimaat): Zachte winters (koudste maand tussen -3°C en 18°C) en matige neerslag.'
+            },
+            {
+                id: 'mosk',
+                location: 'Moskou (Rusland)',
+                diff: 'medium',
+                mainCode: 'D-klimaat',
+                fullName: 'D-klimaat: Landklimaat',
+                temp: [-8, -7, -1, 6, 13, 17, 19, 17, 11, 5, -2, -6],
+                precip: [45, 35, 35, 40, 50, 75, 85, 75, 65, 60, 55, 50],
+                distractors: ['C-klimaat: Gematigd Zeeklimaat', 'E-klimaat: Polair Klimaat', 'B-klimaat: Droog Klimaat'],
+                exp: 'D-klimaat (Landklimaat): Strenge, koude winters met sneeuw (koudste maand is kouder dan -3°C).'
+            },
+            {
+                id: 'nuuk',
+                location: 'Nuuk (Groenland)',
+                diff: 'medium',
+                mainCode: 'E-klimaat',
+                fullName: 'E-klimaat: Polair Klimaat',
+                temp: [-8, -9, -8, -3, 2, 6, 8, 8, 5, 0, -4, -7],
+                precip: [55, 50, 55, 50, 55, 60, 80, 85, 90, 75, 70, 60],
+                distractors: ['D-klimaat: Landklimaat', 'C-klimaat: Gematigd Zeeklimaat', 'A-klimaat: Tropisch Klimaat'],
+                exp: 'E-klimaat (Polair): Erg koud. De warmste maand van het jaar komt niet boven de 10°C uit!'
+            },
+            {
+                id: 'barc',
+                location: 'Barcelona (Spanje)',
+                diff: 'hard',
+                mainCode: 'C-klimaat',
+                fullName: 'C-klimaat: Middellandse Zeeklimaat',
+                temp: [9, 10, 12, 14, 18, 22, 25, 25, 22, 18, 13, 10],
+                precip: [40, 35, 35, 45, 50, 30, 20, 60, 85, 90, 55, 45],
+                distractors: ['B-klimaat: Droog Klimaat', 'A-klimaat: Tropisch Klimaat', 'D-klimaat: Landklimaat'],
+                exp: 'C-klimaat (Middellandse Zeeklimaat): Warm en een hele droge zomer met neerslag in het najaar.'
+            }
+        ];
+
+        let currentCategory = ''; 
+        let currentDiff = 'easy';
+        let isEndlessMode = false;
+        let questionQueue = [];
+        let currentQ = null;
         let score = 0;
         let streak = 0;
         let maxStreak = 0;
         let lives = 3;
-        let shuffledQuizData = [];
-        let canAnswer = true;
-        let isEndless = false;
 
-        const LEADERBOARD_KEY = 'flagguessr_leaderboard';
-        
-        function getLeaderboard() {
-            const data = localStorage.getItem(LEADERBOARD_KEY);
-            if (data) return JSON.parse(data);
-            
-            // Standaard dummy data voor competitie (alleen endless)
-            return [
-                { name: 'Ninja', score: 65000, mode: 'endless' },
-                { name: 'AardrijkskundePro', score: 32500, mode: 'endless' },
-                { name: 'VlaggenKoning', score: 16400, mode: 'endless' },
-                { name: 'GeoMaster', score: 8200, mode: 'endless' },
-                { name: 'Noob123', score: 1400, mode: 'endless' }
-            ];
+        // Multiplayer state
+        let isMultiplayer = false;
+        let isHost = false;
+        let peer = null;
+        let roomPin = '';
+        let myNickname = 'Speler';
+        let mpConnections = [];
+        let mpPlayers = [];
+        let timerInterval = null;
+        let timeLeft = 15;
+
+        function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+        function hideAllScreens() {
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('mp-setup-screen').classList.add('hidden');
+            document.getElementById('mp-lobby-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('mp-scoreboard-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('nav-home-btn').classList.remove('hidden');
+            if (timerInterval) clearInterval(timerInterval);
         }
 
-        // Fortnite Rank Systeem Checker
-        function getRank(s) {
-            if (s < 500) return { name: 'Bronze I', icon: '🥉', color: 'text-amber-700' };
-            if (s < 1000) return { name: 'Bronze II', icon: '🥉', color: 'text-amber-700' };
-            if (s < 1500) return { name: 'Bronze III', icon: '🥉', color: 'text-amber-700' };
-            if (s < 2500) return { name: 'Silver I', icon: '🥈', color: 'text-slate-400' };
-            if (s < 3500) return { name: 'Silver II', icon: '🥈', color: 'text-slate-400' };
-            if (s < 4500) return { name: 'Silver III', icon: '🥈', color: 'text-slate-400' };
-            if (s < 6000) return { name: 'Gold I', icon: '🥇', color: 'text-yellow-400' };
-            if (s < 7500) return { name: 'Gold II', icon: '🥇', color: 'text-yellow-400' };
-            if (s < 9000) return { name: 'Gold III', icon: '🥇', color: 'text-yellow-400' };
-            if (s < 12000) return { name: 'Platinum I', icon: '💠', color: 'text-cyan-400' };
-            if (s < 15000) return { name: 'Platinum II', icon: '💠', color: 'text-cyan-400' };
-            if (s < 18000) return { name: 'Platinum III', icon: '💠', color: 'text-cyan-400' };
-            if (s < 22000) return { name: 'Diamond I', icon: '💎', color: 'text-blue-400' };
-            if (s < 26000) return { name: 'Diamond II', icon: '💎', color: 'text-blue-400' };
-            if (s < 30000) return { name: 'Diamond III', icon: '💎', color: 'text-blue-400' };
-            if (s < 40000) return { name: 'Elite', icon: '🦅', color: 'text-red-500' };
-            if (s < 55000) return { name: 'Champion', icon: '🏆', color: 'text-orange-500' };
-            return { name: 'Unreal', icon: '🌌', color: 'text-purple-500' };
+        function showDashboard() {
+            hideAllScreens();
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            document.getElementById('nav-home-btn').classList.add('hidden');
+            isMultiplayer = false;
         }
 
-        function saveToLeaderboard(name, score, mode) {
-            if (mode !== 'endless') return; // Enkel score opslaan in ranked/endless
-            
-            const board = getLeaderboard();
-            board.push({ name: name || 'Anoniem', score, mode });
-            board.sort((a, b) => b.score - a.score);
-            const top10 = board.slice(0, 10);
-            localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(top10));
+        function showMultiplayerSetup() {
+            hideAllScreens();
+            hideMpError();
+            document.getElementById('mp-setup-screen').classList.remove('hidden');
         }
 
-        function showLeaderboard() {
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('leaderboard-screen').classList.remove('hidden');
-            
-            const board = getLeaderboard();
-            const tbody = document.getElementById('leaderboard-body');
-            tbody.innerHTML = '';
+        function showMpError(msg) {
+            const errBox = document.getElementById('mp-error-msg');
+            if (errBox) {
+                errBox.innerText = msg;
+                errBox.classList.remove('hidden');
+            }
+        }
 
-            board.forEach((entry, index) => {
-                let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
-                let rank = getRank(entry.score);
+        function hideMpError() {
+            const errBox = document.getElementById('mp-error-msg');
+            if (errBox) {
+                errBox.classList.add('hidden');
+                errBox.innerText = '';
+            }
+        }
 
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-800/50 transition">
-                        <td class="px-4 py-3 font-bold text-amber-400">${medal}</td>
-                        <td class="px-4 py-3 font-semibold text-slate-100">${entry.name}</td>
-                        <td class="px-4 py-3 text-xs font-bold ${rank.color}">${rank.icon} ${rank.name}</td>
-                        <td class="px-4 py-3 text-right font-bold text-emerald-300">${entry.score}</td>
-                    </tr>
+        function generatePin() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        function createHostLobby() {
+            hideMpError();
+            const nameInput = document.getElementById('mp-player-name').value.trim();
+            if (!nameInput) {
+                showMpError("Vul eerst je nickname in!");
+                return;
+            }
+
+            const hostBtn = document.getElementById('create-host-btn');
+            hostBtn.disabled = true;
+            hostBtn.innerText = "Lobby maken...";
+
+            isMultiplayer = true;
+            isHost = true;
+            roomPin = generatePin();
+            myNickname = nameInput;
+
+            if (peer) peer.destroy();
+
+            peer = new Peer(`akguessr-pin-${roomPin}`, {
+                config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+            });
+
+            peer.on('open', () => {
+                hostBtn.disabled = false;
+                hostBtn.innerText = "Lobby Aanmaken ➕";
+                hideAllScreens();
+                document.getElementById('mp-lobby-screen').classList.remove('hidden');
+                document.getElementById('lobby-pin-display').innerText = roomPin;
+                document.getElementById('host-controls').classList.remove('hidden');
+                document.getElementById('client-waiting-msg').classList.add('hidden');
+
+                mpPlayers = [{ id: 'host', name: myNickname, score: 0, answered: false }];
+                updateLobbyPlayersUI();
+            });
+
+            peer.on('connection', (conn) => {
+                conn.on('data', (data) => handleHostData(conn, data));
+                conn.on('open', () => mpConnections.push(conn));
+            });
+
+            peer.on('error', () => {
+                hostBtn.disabled = false;
+                hostBtn.innerText = "Lobby Aanmaken ➕";
+                showMpError("Kon geen verbinding maken met de server.");
+            });
+        }
+
+        function joinLobbyWithPin() {
+            hideMpError();
+            const pinInput = document.getElementById('mp-pin-input').value.trim();
+            const nameInput = document.getElementById('mp-player-name').value.trim();
+
+            if (!nameInput || !pinInput || pinInput.length !== 6) {
+                showMpError("Vul een geldige nickname en 6-cijferige PIN code in!");
+                return;
+            }
+
+            const joinBtn = document.getElementById('join-btn');
+            joinBtn.disabled = true;
+            joinBtn.innerText = "Verbinden...";
+
+            isMultiplayer = true;
+            isHost = false;
+            roomPin = pinInput;
+            myNickname = nameInput;
+
+            if (peer) peer.destroy();
+
+            peer = new Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
+
+            let joinTimeout = setTimeout(() => {
+                joinBtn.disabled = false;
+                joinBtn.innerText = "Deelnemen 🚀";
+                showMpError("De ingevoerde code is onjuist of de lobby bestaat niet meer.");
+                if (peer) peer.destroy();
+            }, 6000);
+
+            peer.on('open', () => {
+                const hostConn = peer.connect(`akguessr-pin-${roomPin}`);
+
+                hostConn.on('open', () => {
+                    clearTimeout(joinTimeout);
+                    joinBtn.disabled = false;
+                    joinBtn.innerText = "Deelnemen 🚀";
+
+                    mpConnections = [hostConn];
+                    hostConn.send({ type: 'JOIN', name: myNickname });
+
+                    hideAllScreens();
+                    document.getElementById('mp-lobby-screen').classList.remove('hidden');
+                    document.getElementById('lobby-pin-display').innerText = roomPin;
+                    document.getElementById('host-controls').classList.add('hidden');
+                    document.getElementById('client-waiting-msg').classList.remove('hidden');
+                });
+
+                hostConn.on('data', (data) => handleClientData(data));
+            });
+
+            peer.on('error', () => {
+                clearTimeout(joinTimeout);
+                joinBtn.disabled = false;
+                joinBtn.innerText = "Deelnemen 🚀";
+                showMpError("De ingevoerde code is onjuist.");
+            });
+        }
+
+        function handleHostData(conn, data) {
+            if (data.type === 'JOIN') {
+                const newPlayer = { id: conn.peer, name: data.name, score: 0, answered: false };
+                mpPlayers.push(newPlayer);
+                broadcastToAll({ type: 'LOBBY_UPDATE', players: mpPlayers });
+                updateLobbyPlayersUI();
+            } else if (data.type === 'SUBMIT_ANSWER') {
+                const p = mpPlayers.find(x => x.id === conn.peer);
+                if (p) {
+                    p.answered = true;
+                    p.score += data.pointsEarned;
+                }
+                if (mpPlayers.every(x => x.answered)) {
+                    if (timerInterval) clearInterval(timerInterval);
+                    showMultiplayerRoundEnd();
+                }
+            }
+        }
+
+        function handleClientData(data) {
+            if (data.type === 'LOBBY_UPDATE') {
+                mpPlayers = data.players;
+                updateLobbyPlayersUI();
+            } else if (data.type === 'START_GAME') {
+                questionQueue = data.questions;
+                startMpGameplay();
+            } else if (data.type === 'NEXT_QUESTION') {
+                currentQ = data.question;
+                showMpQuestion();
+            } else if (data.type === 'SHOW_SCOREBOARD') {
+                mpPlayers = data.players;
+                renderMpScoreboard();
+            }
+        }
+
+        function broadcastToAll(msg) { mpConnections.forEach(c => c.send(msg)); }
+
+        function updateLobbyPlayersUI() {
+            document.getElementById('lobby-count-badge').innerText = mpPlayers.length;
+            let html = '';
+            mpPlayers.forEach(p => {
+                html += `
+                    <div class="bg-slate-950 border border-slate-800 p-2.5 rounded-lg flex items-center justify-between">
+                        <span class="text-xs font-bold text-white">${p.name}</span>
+                        <span class="text-[10px] text-emerald-400 font-semibold">✓ Klaar</span>
+                    </div>
                 `;
             });
+            document.getElementById('lobby-players-list').innerHTML = html;
         }
 
-        function hideLeaderboard() {
-            document.getElementById('leaderboard-screen').classList.add('hidden');
-            document.getElementById('start-screen').classList.remove('hidden');
+        function startMultiplayerGame() {
+            if (!isHost) return;
+            const mpQuestions = shuffle(koppenDB);
+            broadcastToAll({ type: 'START_GAME', questions: mpQuestions });
+            questionQueue = mpQuestions;
+            startMpGameplay();
         }
 
-        function submitScore() {
-            const nameInput = document.getElementById('player-name');
-            if (nameInput.disabled) return;
-            
-            saveToLeaderboard(nameInput.value, score, selectedDifficulty);
-            nameInput.disabled = true;
-            
-            const msg = document.getElementById('submit-msg');
-            msg.classList.remove('hidden');
-            msg.innerText = 'Score succesvol opgeslagen!';
-            
-            setTimeout(() => {
-                exitToMenu();
-                showLeaderboard();
-            }, 1500);
+        function startMpGameplay() {
+            hideAllScreens();
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('vlaggen-container').classList.add('hidden');
+            document.getElementById('koppen-container').classList.remove('hidden');
+            document.getElementById('q-mode-badge').innerText = `🌡️ Köppen Multiplayer`;
+            document.getElementById('timer-box').classList.remove('hidden');
+            document.getElementById('lives-box').classList.add('hidden');
+
+            score = 0;
+            updateStatusUI();
+
+            if (isHost) hostTriggersNextQuestion();
         }
 
-        function exitToMenu() {
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('game-over-screen').classList.add('hidden');
-            document.getElementById('leaderboard-screen').classList.add('hidden');
-            document.getElementById('start-screen').classList.remove('hidden');
-            document.getElementById('level-badge').classList.add('hidden');
-            document.getElementById('home-btn').classList.add('hidden');
-            
-            document.getElementById('rank-display-container').classList.add('hidden');
-            document.getElementById('rank-display-container').classList.remove('flex');
+        function hostTriggersNextQuestion() {
+            if (questionQueue.length === 0) questionQueue = shuffle(koppenDB);
+            currentQ = questionQueue.pop();
+            mpPlayers.forEach(p => p.answered = false);
+
+            broadcastToAll({ type: 'NEXT_QUESTION', question: currentQ });
+            showMpQuestion();
         }
 
-        function selectLevel(level) {
-            selectedDifficulty = level;
-            const levels = ['easy', 'medium', 'hard', 'endless'];
-            
-            levels.forEach(lvl => {
-                const btn = document.getElementById(`lvl-${lvl}`);
-                if (!btn) return;
+        function showMpQuestion() {
+            hideAllScreens();
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('q-explanation').classList.add('hidden');
+            document.getElementById('q-next').classList.add('hidden');
 
-                if (lvl === level) {
-                    if (lvl === 'endless') {
-                        btn.className = `level-btn border-2 border-indigo-500 bg-indigo-500/10 text-indigo-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 hover:bg-indigo-500/20 w-full max-w-md mx-auto shadow-md scale-105`;
-                    } else {
-                        btn.className = `level-btn border-2 border-emerald-500 bg-emerald-500/10 text-emerald-300 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-emerald-500/20 shadow-md scale-105`;
-                    }
-                } else {
-                    if (lvl === 'endless') {
-                        btn.className = `level-btn border-2 border-slate-700 bg-slate-800 text-slate-400 font-bold py-3 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 hover:bg-slate-700 w-full max-w-md mx-auto`;
-                    } else {
-                        btn.className = `level-btn border-2 border-slate-700 bg-slate-800 text-slate-400 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center gap-1 hover:bg-slate-700`;
-                    }
+            document.getElementById('k-location').innerText = `Locatie: ${currentQ.location}`;
+            drawClimateChart(currentQ.temp, currentQ.precip);
+
+            let options = shuffle([currentQ.fullName, ...currentQ.distractors]);
+            renderOptions(options, currentQ.fullName);
+
+            timeLeft = 15;
+            document.getElementById('q-timer').innerText = `${timeLeft}s`;
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('q-timer').innerText = `${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (isHost) showMultiplayerRoundEnd();
                 }
+            }, 1000);
+        }
+
+        function showMultiplayerRoundEnd() {
+            broadcastToAll({ type: 'SHOW_SCOREBOARD', players: mpPlayers });
+            renderMpScoreboard();
+        }
+
+        function renderMpScoreboard() {
+            hideAllScreens();
+            document.getElementById('mp-scoreboard-screen').classList.remove('hidden');
+
+            if (isHost) {
+                document.getElementById('mp-next-question-btn').classList.remove('hidden');
+                document.getElementById('mp-waiting-next-msg').classList.add('hidden');
+            } else {
+                document.getElementById('mp-next-question-btn').classList.add('hidden');
+                document.getElementById('mp-waiting-next-msg').classList.remove('hidden');
+            }
+
+            mpPlayers.sort((a, b) => b.score - a.score);
+
+            let html = '';
+            mpPlayers.forEach((p, idx) => {
+                let badge = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `#${idx + 1}`));
+                html += `
+                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="text-base font-bold">${badge}</span>
+                            <span class="text-sm font-bold text-white">${p.name}</span>
+                        </div>
+                        <span class="font-black text-emerald-400 text-base font-mono">${p.score} pts</span>
+                    </div>
+                `;
             });
+            document.getElementById('mp-rankings-list').innerHTML = html;
         }
 
-        // Audio Effects met Web Audio API
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function startQuiz(category, diff) {
+            isMultiplayer = false;
+            currentCategory = category;
+            currentDiff = diff;
+            isEndlessMode = (diff === 'endless');
 
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
+            hideAllScreens();
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('timer-box').classList.add('hidden');
+
+            if (isEndlessMode) {
+                document.getElementById('lives-box').classList.add('hidden');
+            } else {
+                document.getElementById('lives-box').classList.remove('hidden');
             }
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
 
-            if (type === 'correct') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            } else if (type === 'wrong') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(164.81, audioCtx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.35);
-            }
-        }
-
-        function shuffle(array) {
-            return [...array].sort(() => Math.random() - 0.5);
-        }
-
-        function startGame() {
             score = 0;
             streak = 0;
             maxStreak = 0;
             lives = 3;
-            currentQuestionIndex = 0;
-            isEndless = (selectedDifficulty === 'endless');
-            
-            if (isEndless) {
-                // Combineer alle vlaggen voor oneindige modus met hun specifieke punten
-                let allFlags = [
-                    ...flagDatabase.easy.map(f => ({...f, points: 50})),
-                    ...flagDatabase.medium.map(f => ({...f, points: 100})),
-                    ...flagDatabase.hard.map(f => ({...f, points: 200}))
-                ];
-                shuffledQuizData = shuffle(allFlags);
-            } else {
-                // Filter database op gekozen niveau
-                const levelData = flagDatabase[selectedDifficulty];
-                shuffledQuizData = shuffle(levelData);
-            }
 
-            // Update badge in header
-            const badge = document.getElementById('level-badge');
-            badge.classList.remove('hidden');
-            const levelNames = { easy: 'Makkelijk', medium: 'Middelmatig', hard: 'Moeilijk', endless: 'Oneindig ♾️' };
-            badge.innerText = levelNames[selectedDifficulty];
+            let badgeName = diff === 'endless' ? '♾️ Oneindig (StudyGo)' : diff.toUpperCase();
 
-            // Pas badge kleur aan voor endless
-            if (isEndless) {
-                badge.className = 'text-xs px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold';
-            } else {
-                badge.className = 'text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold';
-            }
-
-            // Toon home knop in header
-            document.getElementById('home-btn').classList.remove('hidden');
-
-            if (isEndless) {
-                document.getElementById('rank-display-container').classList.remove('hidden');
-                document.getElementById('rank-display-container').classList.add('flex');
-            } else {
-                document.getElementById('rank-display-container').classList.add('hidden');
-                document.getElementById('rank-display-container').classList.remove('flex');
-            }
-
-            updateStats();
-            
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('game-over-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-
-            loadQuestion();
-        }
-
-        function loadQuestion() {
-            canAnswer = true;
-            document.getElementById('fact-box').classList.add('hidden');
-            document.getElementById('next-btn').classList.add('hidden');
-
-            const current = shuffledQuizData[currentQuestionIndex];
-            
-            if (isEndless) {
-                document.getElementById('progress-bar').style.width = '100%'; 
-                document.getElementById('progress-bar').classList.add('animate-pulse-subtle');
-            } else {
-                const progressPercent = ((currentQuestionIndex) / shuffledQuizData.length) * 100;
-                document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-                document.getElementById('progress-bar').classList.remove('animate-pulse-subtle');
-            }
-
-            const flagImg = document.getElementById('flag-image');
-            flagImg.src = `https://flagcdn.com/w640/${current.code}.png`;
-
-            const choices = shuffle([current.name, ...current.similar]);
-
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = '';
-
-            choices.forEach(choice => {
-                const button = document.createElement('button');
-                button.className = `option-btn w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 
-                                    text-slate-100 font-medium py-3.5 px-4 rounded-xl transition duration-150 
-                                    text-center shadow-sm active:scale-98 flex items-center justify-between px-6`;
-                button.innerHTML = `<span>${choice}</span><span class="indicator text-lg"></span>`;
-                button.onclick = () => checkAnswer(choice, current, button);
-                optionsContainer.appendChild(button);
-            });
-        }
-
-        function checkAnswer(selectedChoice, currentData, clickedButton) {
-            if (!canAnswer) return;
-            canAnswer = false;
-
-            const allButtons = document.querySelectorAll('.option-btn');
-            const isCorrect = selectedChoice === currentData.name;
-
-            if (isCorrect) {
-                playSound('correct');
-                clickedButton.classList.remove('bg-slate-800', 'hover:bg-slate-700', 'border-slate-700');
-                clickedButton.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white');
-                clickedButton.querySelector('.indicator').innerText = '✓';
-
-                if (isEndless) {
-                    // Punten gebaseerd op originele moeilijkheidsgraad (50, 100, of 200) plus kleine streak bonus
-                    score += currentData.points + (streak * 10);
+            if (currentCategory === 'vlaggen') {
+                if (isEndlessMode) {
+                    questionQueue = shuffle(vlaggenDB);
                 } else {
-                    // Normale score logica met multiplier
-                    const multiplier = selectedDifficulty === 'hard' ? 3 : (selectedDifficulty === 'medium' ? 2 : 1);
-                    score += (100 + (streak * 20)) * multiplier;
+                    questionQueue = shuffle(vlaggenDB.filter(x => x.diff === currentDiff));
+                }
+                document.getElementById('vlaggen-container').classList.remove('hidden');
+                document.getElementById('koppen-container').classList.add('hidden');
+                document.getElementById('q-mode-badge').innerText = `🚩 Vlaggen - ${badgeName}`;
+            } else {
+                if (isEndlessMode) {
+                    questionQueue = shuffle(koppenDB);
+                } else {
+                    questionQueue = shuffle(koppenDB.filter(x => x.diff === currentDiff || currentDiff === 'easy'));
+                }
+                document.getElementById('vlaggen-container').classList.add('hidden');
+                document.getElementById('koppen-container').classList.remove('hidden');
+                document.getElementById('q-mode-badge').innerText = `🌡️️ Köppen - ${badgeName}`;
+            }
+
+            updateStatusUI();
+            loadNextSingleplayerQuestion();
+        }
+
+        function retryCurrentGame() {
+            if (isMultiplayer) {
+                showMultiplayerSetup();
+            } else {
+                startQuiz(currentCategory, currentDiff);
+            }
+        }
+
+        function updateStatusUI() {
+            document.getElementById('q-score').innerText = score;
+            document.getElementById('q-streak').innerText = streak;
+            document.getElementById('q-lives').innerText = isEndlessMode ? '♾️' : '❤️'.repeat(Math.max(0, lives));
+        }
+
+        function loadNextSingleplayerQuestion() {
+            document.getElementById('q-explanation').classList.add('hidden');
+            document.getElementById('q-next').classList.add('hidden');
+
+            if (questionQueue.length === 0) {
+                if (currentCategory === 'vlaggen') {
+                    questionQueue = isEndlessMode ? shuffle(vlaggenDB) : shuffle(vlaggenDB.filter(x => x.diff === currentDiff));
+                } else {
+                    questionQueue = isEndlessMode ? shuffle(koppenDB) : shuffle(koppenDB.filter(x => x.diff === currentDiff || currentDiff === 'easy'));
+                }
+            }
+
+            currentQ = questionQueue.pop();
+
+            if (currentCategory === 'vlaggen') {
+                document.getElementById('v-flag').src = `https://flagcdn.com/w640/${currentQ.code}.png`;
+                let options = shuffle([currentQ.name, ...currentQ.distractors]);
+                renderOptions(options, currentQ.name);
+            } else {
+                document.getElementById('k-location').innerText = `Locatie: ${currentQ.location}`;
+                drawClimateChart(currentQ.temp, currentQ.precip);
+                let options = shuffle([currentQ.fullName, ...currentQ.distractors]);
+                renderOptions(options, currentQ.fullName);
+            }
+        }
+
+        function renderOptions(options, correctAnswer) {
+            let html = '';
+            const labels = ['A', 'B', 'C', 'D'];
+            options.forEach((opt, idx) => {
+                let letter = labels[idx] || (idx + 1);
+                html += `
+                    <button onclick="checkAnswer('${opt.replace(/'/g, "\\'")}', '${correctAnswer.replace(/'/g, "\\'")}', this)" 
+                            class="opt-btn bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white font-semibold py-3.5 px-4 rounded-xl transition text-sm text-left flex items-center justify-between group">
+                        <div class="flex items-center gap-3">
+                            <span class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 font-extrabold text-xs text-amber-400 flex items-center justify-center group-hover:border-amber-400 transition">${letter}</span>
+                            <span>${opt}</span>
+                        </div>
+                        <span class="opt-icon opacity-0">⚪</span>
+                    </button>
+                `;
+            });
+            document.getElementById('q-options').innerHTML = html;
+        }
+
+        function checkAnswer(selected, correct, btnElem) {
+            let btns = document.querySelectorAll('.opt-btn');
+            btns.forEach(b => b.disabled = true);
+            if (timerInterval) clearInterval(timerInterval);
+
+            const isCorrect = selected === correct;
+
+            if (isMultiplayer) {
+                let pointsEarned = 0;
+                if (isCorrect) {
+                    pointsEarned = Math.max(200, Math.round(1000 * (timeLeft / 15)));
+                    score += pointsEarned;
                 }
 
-                streak++;
-                if (streak > maxStreak) maxStreak = streak;
-            } else {
-                playSound('wrong');
-                clickedButton.classList.remove('bg-slate-800', 'hover:bg-slate-700', 'border-slate-700');
-                clickedButton.classList.add('bg-rose-600', 'border-rose-500', 'text-white');
-                clickedButton.querySelector('.indicator').innerText = '✕';
-
-                allButtons.forEach(btn => {
-                    if (btn.innerText.includes(currentData.name)) {
-                        btn.classList.remove('bg-slate-800');
-                        btn.classList.add('bg-emerald-600/80', 'border-emerald-500', 'text-white');
-                        btn.querySelector('.indicator').innerText = '✓';
+                if (isHost) {
+                    const hostP = mpPlayers.find(x => x.id === 'host');
+                    if (hostP) {
+                        hostP.answered = true;
+                        hostP.score += pointsEarned;
                     }
-                });
+                } else {
+                    mpConnections[0].send({ type: 'SUBMIT_ANSWER', pointsEarned: pointsEarned });
+                }
 
-                streak = 0;
-                lives--;
-            }
+                updateStatusUI();
 
-            allButtons.forEach(btn => btn.disabled = true);
+                if (isCorrect) {
+                    btnElem.classList.replace('bg-slate-900', 'bg-emerald-600');
+                } else {
+                    btnElem.classList.replace('bg-slate-900', 'bg-rose-600');
+                }
 
-            updateStats();
+                if (isHost && mpPlayers.every(x => x.answered)) {
+                    setTimeout(showMultiplayerRoundEnd, 1200);
+                }
 
-            let factText = currentData.fact;
-            if (isEndless) {
-                let diffText = currentData.points === 200 ? '🔥 Moeilijk (200pt)' : currentData.points === 100 ? '⚡ Middelmatig (100pt)' : '🌱 Makkelijk (50pt)';
-                factText = `<strong>${diffText}</strong> - ${factText}`;
-            }
-            document.getElementById('fact-text').innerHTML = factText;
-            document.getElementById('fact-box').classList.remove('hidden');
-
-            if (lives <= 0 || (!isEndless && currentQuestionIndex >= shuffledQuizData.length - 1)) {
-                setTimeout(endGame, 1500);
             } else {
-                document.getElementById('next-btn').classList.remove('hidden');
+                // Singleplayer Mode / StudyGo Endless
+                if (isCorrect) {
+                    score += 100 + (streak * 10);
+                    streak++;
+                    if (streak > maxStreak) maxStreak = streak;
+                    btnElem.classList.replace('bg-slate-900', 'bg-emerald-600');
+                } else {
+                    streak = 0;
+                    if (!isEndlessMode) {
+                        lives--;
+                    }
+                    btnElem.classList.replace('bg-slate-900', 'bg-rose-600');
+
+                    btns.forEach(b => {
+                        if (b.innerText.includes(correct)) {
+                            b.classList.replace('bg-slate-900', 'bg-emerald-600/40');
+                        }
+                    });
+                }
+
+                updateStatusUI();
+
+                if (currentCategory === 'koppen' && currentQ.exp) {
+                    document.getElementById('exp-title').innerText = `💡 StudyGo Klimaat Uitleg:`;
+                    document.getElementById('exp-text').innerText = currentQ.exp;
+                    document.getElementById('q-explanation').classList.remove('hidden');
+                }
+
+                if (!isEndlessMode && lives <= 0) {
+                    setTimeout(showGameOver, 1200);
+                } else {
+                    document.getElementById('q-next').classList.remove('hidden');
+                }
             }
         }
 
         function nextQuestion() {
-            currentQuestionIndex++;
-            
-            // In oneindige modus: als we door alle vlaggen heen zijn, husselen we ze opnieuw!
-            if (isEndless && currentQuestionIndex >= shuffledQuizData.length) {
-                shuffledQuizData = shuffle(shuffledQuizData);
-                currentQuestionIndex = 0;
-            }
-            
-            loadQuestion();
+            loadNextSingleplayerQuestion();
         }
 
-        function updateStats() {
-            document.getElementById('score-display').innerText = score;
-            document.getElementById('streak-display').innerText = streak;
-            document.getElementById('lives-display').innerText = '❤️'.repeat(Math.max(0, lives));
-
-            if (isEndless) {
-                const rank = getRank(score);
-                const rankIcon = document.getElementById('rank-icon');
-                const rankName = document.getElementById('rank-name');
-                
-                rankIcon.innerText = rank.icon;
-                rankName.innerText = rank.name;
-                rankName.className = `text-xs sm:text-sm font-bold ${rank.color}`;
-            }
-        }
-
-        function endGame() {
-            document.getElementById('game-screen').classList.add('hidden');
+        function showGameOver() {
+            hideAllScreens();
             document.getElementById('game-over-screen').classList.remove('hidden');
+            document.getElementById('go-score').innerText = score;
+            document.getElementById('go-streak').innerText = maxStreak;
+            document.getElementById('go-subtitle').innerText = `Aardrijkskunde Game - ${currentCategory === 'vlaggen' ? 'VlaggenGuessr' : 'KöppenGuessr'}`;
+        }
 
-            // Verberg de home knop in header op game over scherm
-            document.getElementById('home-btn').classList.add('hidden');
+        function drawClimateChart(temps, precips) {
+            const canvas = document.getElementById('climateCanvas');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
 
-            document.getElementById('final-score').innerText = score;
-            document.getElementById('best-streak').innerText = maxStreak;
+            ctx.clearRect(0, 0, w, h);
 
-            const statsText = lives <= 0 
-                ? 'Helaas, al je levens zijn op! Goed geprobeerd.' 
-                : 'Gefeliciteerd! Je hebt alle vlaggen gehaald!';
-            
-            document.getElementById('final-stats').innerText = statsText;
+            const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+            const margin = { top: 25, bottom: 30, left: 35, right: 35 };
+            const chartW = w - margin.left - margin.right;
+            const chartH = h - margin.top - margin.bottom;
 
-            // Reset het score-submit formulier
-            document.getElementById('player-name').disabled = false;
-            document.getElementById('player-name').value = '';
-            document.getElementById('submit-msg').classList.add('hidden');
-            
-            if (isEndless) {
-                const finalRank = getRank(score);
-                document.getElementById('final-rank-container').classList.remove('hidden');
-                const finalRankDiv = document.getElementById('final-rank');
-                finalRankDiv.innerText = `${finalRank.icon} ${finalRank.name}`;
-                finalRankDiv.className = `text-2xl font-bold ${finalRank.color}`;
-            } else {
-                document.getElementById('final-rank-container').classList.add('hidden');
+            const maxP = Math.max(300, ...precips);
+            const minT = Math.min(-30, ...temps);
+            const maxT = Math.max(40, ...temps);
+
+            // Draw Background Grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                let y = margin.top + (chartH / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(w - margin.right, y);
+                ctx.stroke();
             }
-            
-            // Verberg submit formulier als het NIET endless is (want leaderboard is ranked only) of score is 0
-            if (!isEndless || score === 0) {
-                document.getElementById('leaderboard-submit-section').classList.add('hidden');
-            } else {
-                document.getElementById('leaderboard-submit-section').classList.remove('hidden');
-            }
+
+            // Draw Precipitation Bars (Blue)
+            const barW = (chartW / 12) * 0.6;
+            precips.forEach((p, idx) => {
+                let x = margin.left + (idx * (chartW / 12)) + ((chartW / 12) - barW) / 2;
+                let barH = (p / maxP) * chartH;
+                let y = margin.top + chartH - barH;
+
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.75)';
+                ctx.fillRect(x, y, barW, barH);
+            });
+
+            // Draw Temperature Line (Red)
+            ctx.beginPath();
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 3;
+
+            temps.forEach((t, idx) => {
+                let x = margin.left + (idx * (chartW / 12)) + (chartW / 12) / 2;
+                let y = margin.top + chartH - ((t - minT) / (maxT - minT)) * chartH;
+
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Draw Month Labels
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            months.forEach((m, idx) => {
+                let x = margin.left + (idx * (chartW / 12)) + (chartW / 12) / 2;
+                ctx.fillText(m, x, h - 10);
+            });
+
+            // Draw Axes
+            ctx.fillStyle = '#f43f5e';
+            ctx.textAlign = 'right';
+            ctx.fillText(`${maxT}°C`, margin.left - 5, margin.top + 10);
+            ctx.fillText(`${minT}°C`, margin.left - 5, h - margin.bottom);
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.textAlign = 'left';
+            ctx.fillText(`${maxP}mm`, w - margin.right + 5, margin.top + 10);
+            ctx.fillText(`0mm`, w - margin.right + 5, h - margin.bottom);
         }
     </script>
 </body>
