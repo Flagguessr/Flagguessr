@@ -81,9 +81,8 @@
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased relative overflow-x-hidden">
-    <!-- Background Particle & Hologram Canvas -->
-    <canvas id="bg-particles" class="fixed inset-0 pointer-events-none z-0 opacity-80"></canvas>
-
+    <!-- Background Particle Canvas -->
+    <canvas id="bg-particles" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
     
     <!-- ZWEVENDE VRAAGTEKEN KNOP (LINKS MIDDEN) -->
     <button onclick="toggleInstructionsModal()" title="Gebruiksaanwijzing" class="fixed left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black flex items-center justify-center transition-all shadow-neon-purple hover:scale-110 active:scale-95 group">
@@ -451,9 +450,7 @@
         <!-- ================= INSTRUCTIONS MODAL ================= -->
         <div id="instructions-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
             <div class="glass-panel border border-slate-800 max-w-lg w-full rounded-3xl p-6 space-y-6 shadow-2xl relative text-left">
-                <!-- Skip / Sluiten Knop -->
-                <button onclick="skipTutorial()" class="absolute top-5 right-5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold transition flex items-center gap-1.5">
-                    <span>Overslaan</span>
+                <button onclick="toggleInstructionsModal()" class="absolute top-5 right-5 w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
                 
@@ -497,8 +494,7 @@
 
         function initAudio() {
             if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
         }
 
@@ -509,199 +505,330 @@
                 icon.className = 'fa-solid fa-volume-xmark text-rose-400';
             } else {
                 icon.className = 'fa-solid fa-volume-high text-emerald-400';
+                playAudioTone(600, 'sine', 0.08);
             }
         }
 
-        function playSoundEffect(type) {
+        function playAudioTone(freq, type = 'sine', duration = 0.1, gainVal = 0.15) {
+            if (isMuted) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log("Audio play blocked", e);
+            }
+        }
+
+        function playSoundEffect(effect) {
             if (isMuted) return;
             initAudio();
-            if (!audioCtx) return;
-
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            if (type === 'click') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, now);
-                osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
-                osc.start(now);
-                osc.stop(now + 0.05);
-            } else if (type === 'correct') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, now); // C5
-                osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
-                osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            } else if (type === 'wrong') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.setValueAtTime(164.81, now + 0.12);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
-                osc.start(now);
-                osc.stop(now + 0.28);
-            } else if (type === 'fanfare') {
-                const notes = [523.25, 659.25, 783.99, 1046.50];
-                notes.forEach((freq, idx) => {
-                    const noteOsc = audioCtx.createOscillator();
-                    const noteGain = audioCtx.createGain();
-                    noteOsc.connect(noteGain);
-                    noteGain.connect(audioCtx.destination);
-                    noteOsc.type = 'triangle';
-                    noteOsc.frequency.setValueAtTime(freq, now + idx * 0.1);
-                    noteGain.gain.setValueAtTime(0.2, now + idx * 0.1);
-                    noteGain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
-                    noteOsc.start(now + idx * 0.1);
-                    noteOsc.stop(now + idx * 0.1 + 0.3);
+            if (effect === 'correct') {
+                playAudioTone(523.25, 'sine', 0.12, 0.2);
+                setTimeout(() => playAudioTone(659.25, 'sine', 0.12, 0.2), 80);
+                setTimeout(() => playAudioTone(783.99, 'sine', 0.15, 0.25), 160);
+                setTimeout(() => playAudioTone(1046.50, 'triangle', 0.25, 0.3), 240);
+            } else if (effect === 'wrong') {
+                playAudioTone(220, 'sawtooth', 0.15, 0.2);
+                setTimeout(() => playAudioTone(196, 'sawtooth', 0.25, 0.25), 100);
+            } else if (effect === 'click') {
+                playAudioTone(800, 'sine', 0.04, 0.08);
+            } else if (effect === 'fanfare') {
+                [523, 659, 783, 1046, 1318].forEach((f, i) => {
+                    setTimeout(() => playAudioTone(f, 'triangle', 0.2, 0.25), i * 90);
                 });
             }
         }
 
-        /* ================= BACKGROUND HOLOGRAPHIC MAP CANVAS ================= */
+        /* ================= BACKGROUND PARTICLES CANVAS ================= */
         const bgCanvas = document.getElementById('bg-particles');
         const bgCtx = bgCanvas.getContext('2d');
-
-        // Gedetailleerde geografische vectoren voor een holografische platte wereldkaart (0.0 - 1.0)
-        const continentPolygons = [
-            // Noord-Amerika
-            [[0.10, 0.18], [0.18, 0.15], [0.28, 0.16], [0.32, 0.28], [0.26, 0.45], [0.18, 0.42], [0.14, 0.32], [0.08, 0.25]],
-            // Groenland
-            [[0.32, 0.08], [0.42, 0.07], [0.40, 0.18], [0.33, 0.16]],
-            // Zuid-Amerika
-            [[0.24, 0.48], [0.34, 0.52], [0.36, 0.65], [0.30, 0.85], [0.25, 0.90], [0.22, 0.72], [0.21, 0.55]],
-            // Europa
-            [[0.44, 0.18], [0.52, 0.16], [0.58, 0.22], [0.56, 0.35], [0.47, 0.36], [0.43, 0.28]],
-            // Afrika
-            [[0.42, 0.40], [0.58, 0.40], [0.62, 0.55], [0.58, 0.78], [0.50, 0.86], [0.43, 0.68], [0.40, 0.52]],
-            // Azië
-            [[0.58, 0.16], [0.82, 0.14], [0.92, 0.22], [0.94, 0.42], [0.82, 0.52], [0.72, 0.50], [0.62, 0.34]],
-            // Australië
-            [[0.76, 0.62], [0.88, 0.60], [0.90, 0.78], [0.82, 0.85], [0.75, 0.76]],
-            // Japan
-            [[0.88, 0.28], [0.91, 0.30], [0.89, 0.38], [0.87, 0.33]]
-        ];
-
-        let holoGridOffset = 0;
-        let holoDataPoints = [];
-        let scanlineY = 0;
+        let particles = [];
 
         function resizeBgCanvas() {
             bgCanvas.width = window.innerWidth;
             bgCanvas.height = window.innerHeight;
-            
-            // Genereer holografische dataknooppunten op de kaart
-            holoDataPoints = [];
-            for (let i = 0; i < 45; i++) {
-                holoDataPoints.push({
-                    x: Math.random() * bgCanvas.width,
-                    y: Math.random() * bgCanvas.height,
-                    radius: Math.random() * 3 + 1.5,
-                    pulse: Math.random() * Math.PI * 2,
-                    speed: 0.02 + Math.random() * 0.03
-                });
-            }
         }
         window.addEventListener('resize', resizeBgCanvas);
         resizeBgCanvas();
 
+        for (let i = 0; i < 45; i++) {
+            particles.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                radius: Math.random() * 2 + 1,
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: (Math.random() - 0.5) * 0.4,
+                alpha: Math.random() * 0.5 + 0.2
+            });
+        }
+
         function animateBgParticles() {
             bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-
-            const w = bgCanvas.width;
-            const h = bgCanvas.height;
-
-            // 1. Cyberpunk Holografisch Raster (Groen/Cyan Tech Lines)
-            bgCtx.strokeStyle = 'rgba(16, 185, 129, 0.08)';
-            bgCtx.lineWidth = 1;
-
-            const gridSize = 36;
-            holoGridOffset = (holoGridOffset + 0.3) % gridSize;
-
-            for (let x = 0; x < w; x += gridSize) {
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0) p.x = bgCanvas.width;
+                if (p.x > bgCanvas.width) p.x = 0;
+                if (p.y < 0) p.y = bgCanvas.height;
+                if (p.y > bgCanvas.height) p.y = 0;
                 bgCtx.beginPath();
-                bgCtx.moveTo(x, 0);
-                bgCtx.lineTo(x, h);
-                bgCtx.stroke();
-            }
-            for (let y = holoGridOffset; y < h; y += gridSize) {
-                bgCtx.beginPath();
-                bgCtx.moveTo(0, y);
-                bgCtx.lineTo(w, y);
-                bgCtx.stroke();
-            }
-
-            // 2. Holografische Platte Wereldkaart (Vectoren + Glow)
-            bgCtx.save();
-            bgCtx.fillStyle = 'rgba(16, 185, 129, 0.06)';
-            bgCtx.strokeStyle = 'rgba(52, 211, 153, 0.55)';
-            bgCtx.lineWidth = 1.8;
-            bgCtx.shadowColor = 'rgba(16, 185, 129, 0.8)';
-            bgCtx.shadowBlur = 14;
-
-            continentPolygons.forEach(poly => {
-                bgCtx.beginPath();
-                poly.forEach((pt, idx) => {
-                    const px = pt[0] * w;
-                    const py = pt[1] * h;
-                    if (idx === 0) bgCtx.moveTo(px, py);
-                    else bgCtx.lineTo(px, py);
-                });
-                bgCtx.closePath();
+                bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                bgCtx.fillStyle = `rgba(52, 211, 153, ${p.alpha})`;
                 bgCtx.fill();
-                bgCtx.stroke();
             });
-            bgCtx.restore();
-
-            // 3. Bewegende Hologram Scanlijn Effect
-            scanlineY = (scanlineY + 1.5) % h;
-            bgCtx.fillStyle = 'rgba(52, 211, 153, 0.08)';
-            bgCtx.fillRect(0, scanlineY, w, 4);
-
-            // Statische scanlijnen
-            bgCtx.fillStyle = 'rgba(6, 182, 212, 0.02)';
-            for (let i = 0; i < h; i += 4) {
-                bgCtx.fillRect(0, i, w, 1.5);
-            }
-
-            // 4. Holografische Datapunten & Verbindingslijnen
-            holoDataPoints.forEach((pt, i) => {
-                pt.pulse += pt.speed;
-                const alpha = (Math.sin(pt.pulse) + 1) / 2 * 0.8 + 0.2;
-                const radius = pt.radius + Math.sin(pt.pulse) * 1.5;
-
-                bgCtx.beginPath();
-                bgCtx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
-                bgCtx.fillStyle = `rgba(52, 211, 153, ${alpha})`;
-                bgCtx.shadowColor = 'rgba(52, 211, 153, 0.9)';
-                bgCtx.shadowBlur = 10;
-                bgCtx.fill();
-                bgCtx.shadowBlur = 0;
-
-                for (let j = i + 1; j < holoDataPoints.length; j++) {
-                    const pt2 = holoDataPoints[j];
-                    const dist = Math.hypot(pt.x - pt2.x, pt.y - pt2.y);
-                    if (dist < 130) {
-                        bgCtx.beginPath();
-                        bgCtx.moveTo(pt.x, pt.y);
-                        bgCtx.lineTo(pt2.x, pt2.y);
-                        bgCtx.strokeStyle = `rgba(16, 185, 129, ${(1 - dist / 130) * 0.25})`;
-                        bgCtx.lineWidth = 1;
-                        bgCtx.stroke();
-                    }
-                }
-            });
-
             requestAnimationFrame(animateBgParticles);
         }
         animateBgParticles();
+
+        /* ================= DATASETS ================= */
+        const flagDatabase = {
+            makkelijk: [
+                { name: "Nederland", code: "nl", continent: "🇪🇺 Europa", distractors: ["België", "Duitsland", "Frankrijk"] },
+                { name: "Frankrijk", code: "fr", continent: "🇪🇺 Europa", distractors: ["Italië", "Nederland", "België"] },
+                { name: "Duitsland", code: "de", continent: "🇪🇺 Europa", distractors: ["Oostenrijk", "België", "Polen"] },
+                { name: "Verenigd Koninkrijk", code: "gb", continent: "🇪🇺 Europa", distractors: ["Australië", "Nieuw-Zeeland", "Ierland"] },
+                { name: "Verenigde Staten", code: "us", continent: "🌎 Noord-Amerika", distractors: ["Canada", "Liberia", "Puerto Rico"] },
+                { name: "Spanje", code: "es", continent: "🇪🇺 Europa", distractors: ["Portugal", "Italië", "Griekenland"] },
+                { name: "Italië", code: "it", continent: "🇪🇺 Europa", distractors: ["Ierland", "Hongarije", "Frankrijk"] },
+                { name: "Japan", code: "jp", continent: "🌏 Azië", distractors: ["Zuid-Korea", "China", "Bangladesh"] },
+                { name: "Brazilië", code: "br", continent: "🌎 Zuid-Amerika", distractors: ["Argentinië", "Colombia", "Peru"] },
+                { name: "Canada", code: "ca", continent: "🌎 Noord-Amerika", distractors: ["Verenigde Staten", "Oostenrijk", "Denemarken"] }
+            ],
+            gemiddeld: [
+                { name: "Zweden", code: "se", continent: "🇪🇺 Europa", distractors: ["Finland", "Noorwegen", "Denemarken"] },
+                { name: "Griekenland", code: "gr", continent: "🇪🇺 Europa", distractors: ["Cyprus", "Finland", "Uruguay"] },
+                { name: "Turkije", code: "tr", continent: "🌍 Midden-Oosten", distractors: ["Tunesië", "Pakistan", "Algerije"] },
+                { name: "Zuid-Afrika", code: "za", continent: "🌍 Afrika", distractors: ["Zimbabwe", "Namibië", "Kenia"] },
+                { name: "Argentinië", code: "ar", continent: "🌎 Zuid-Amerika", distractors: ["Uruguay", "Guatemala", "Honduras"] },
+                { name: "Mexico", code: "mx", continent: "🌎 Noord-Amerika", distractors: ["Italië", "Hongarije", "Peru"] },
+                { name: "India", code: "in", continent: "🌏 Azië", distractors: ["Niger", "Ierland", "Sri Lanka"] },
+                { name: "Zwitserland", code: "ch", continent: "🇪🇺 Europa", distractors: ["Oostenrijk", "Denemarken", "Griekenland"] },
+                { name: "Egypte", code: "eg", continent: "🌍 Midden-Oosten", distractors: ["Syrië", "Jemen", "Irak"] },
+                { name: "Marokko", code: "ma", continent: "🌍 Afrika", distractors: ["Vietnam", "Tunesië", "Algerije"] }
+            ],
+            moeilijk: [
+                { name: "Tjaad", code: "td", continent: "🌍 Afrika", distractors: ["Roemenië", "Moldavië", "Andorra"] },
+                { name: "Roemenië", code: "ro", continent: "🇪🇺 Europa", distractors: ["Tjaad", "Moldavië", "België"] },
+                { name: "Indonesië", code: "id", continent: "🌏 Azië", distractors: ["Monaco", "Polen", "Singapore"] },
+                { name: "Monaco", code: "mc", continent: "🇪🇺 Europa", distractors: ["Indonesië", "Polen", "Oostenrijk"] },
+                { name: "Nieuw-Zeeland", code: "nz", continent: "Oceanie", distractors: ["Australië", "Tuvalu", "Fiji"] },
+                { name: "Australië", code: "au", continent: "Oceanie", distractors: ["Nieuw-Zeeland", "Verenigd Koninkrijk", "Samoa"] },
+                { name: "Slovenië", code: "si", continent: "🇪🇺 Europa", distractors: ["Slowakije", "Rusland", "Kroatië"] },
+                { name: "Slowakije", code: "sk", continent: "🇪🇺 Europa", distractors: ["Slovenië", "Tsjechië", "Rusland"] },
+                { name: "Mali", code: "ml", continent: "🌍 Afrika", distractors: ["Guinee", "Senegal", "Ghana"] },
+                { name: "Guinee", code: "gn", continent: "🌍 Afrika", distractors: ["Mali", "Kameroen", "Ghana"] }
+            ],
+            eu_special: [
+                { name: "Nederland", code: "nl", continent: "🇪🇺 Europa", distractors: ["België", "Luxemburg", "Frankrijk"] },
+                { name: "Frankrijk", code: "fr", continent: "🇪🇺 Europa", distractors: ["Italië", "Spanje", "België"] },
+                { name: "Duitsland", code: "de", continent: "🇪🇺 Europa", distractors: ["Oostenrijk", "Polen", "Tsjechië"] },
+                { name: "Spanje", code: "es", continent: "🇪🇺 Europa", distractors: ["Portugal", "Italië", "Griekenland"] },
+                { name: "Zweden", code: "se", continent: "🇪🇺 Europa", distractors: ["Finland", "Noorwegen", "Denemarken"] },
+                { name: "Italië", code: "it", continent: "🇪🇺 Europa", distractors: ["Griekenland", "Ierland", "Oostenrijk"] },
+                { name: "IJsland", code: "is", continent: "🇪🇺 Europa", distractors: ["Noorwegen", "Finland", "Denemarken"] },
+                { name: "Finland", code: "fi", continent: "🇪🇺 Europa", distractors: ["Zweden", "Estland", "IJsland"] },
+                { name: "Griekenland", code: "gr", continent: "🇪🇺 Europa", distractors: ["Cyprus", "Kroatië", "Italië"] },
+                { name: "Portugal", code: "pt", continent: "🇪🇺 Europa", distractors: ["Spanje", "Italië", "Frankrijk"] },
+                { name: "Zwitserland", code: "ch", continent: "🇪🇺 Europa", distractors: ["Oostenrijk", "België", "Denemarken"] }
+            ]
+        };
+
+        const koppenDatabase = [
+            {
+                code: "Af - Tropisch Regenwoudklimaat",
+                short: "Af",
+                temp: [26, 26, 27, 27, 27, 26, 26, 26, 27, 27, 26, 26],
+                precip: [280, 250, 310, 290, 220, 180, 160, 150, 180, 210, 240, 270],
+                desc: "Tropisch regenwoudklimaat (Af): Elke maand heeft een gemiddelde temperatuur boven 18°C en neerslag boven 60 mm."
+            },
+            {
+                code: "BWk - Koud Woestijnklimaat",
+                short: "BWk",
+                temp: [-5, -2, 5, 12, 19, 24, 27, 25, 19, 11, 3, -3],
+                precip: [10, 8, 12, 15, 18, 14, 10, 8, 6, 8, 9, 11],
+                desc: "Koud woestijnklimaat (BWk): Zeer droog het hele jaar door, met koude winters."
+            },
+            {
+                code: "Cfb - Gematigd Zeeklimaat",
+                short: "Cfb",
+                temp: [3, 4, 7, 10, 14, 17, 19, 19, 16, 12, 7, 4],
+                precip: [70, 55, 60, 45, 55, 65, 75, 80, 70, 80, 80, 75],
+                desc: "Gematigd zeeklimaat (Cfb): Zachte winters, koele zomers en neerslag gelijkmatig verdeeld over het jaar (o.a. Nederland)."
+            },
+            {
+                code: "Csa - Mediterraan Klimaat",
+                short: "Csa",
+                temp: [10, 11, 13, 16, 20, 24, 28, 28, 24, 20, 15, 11],
+                precip: [90, 80, 60, 40, 20, 5, 2, 8, 35, 75, 95, 100],
+                desc: "Mediterraan / Middellandse Zeeklimaat (Csa): Warme, zeer droge zomers en milde, natte winters."
+            },
+            {
+                code: "Dfc - Subarctisch Klimaat",
+                short: "Dfc",
+                temp: [-20, -17, -10, -1, 7, 14, 17, 15, 8, 0, -10, -17],
+                precip: [20, 18, 20, 25, 35, 55, 70, 65, 45, 35, 28, 22],
+                desc: "Subarctisch / Landklimaat (Dfc): Zeer koude, lange winters en korte, koele zomers."
+            },
+            {
+                code: "EF - Poolklimaat / Sneeuwklimaat",
+                short: "EF",
+                temp: [-35, -38, -32, -25, -15, -5, -2, -4, -12, -22, -30, -35],
+                precip: [8, 6, 5, 8, 10, 12, 15, 14, 10, 8, 7, 8],
+                desc: "Eeuwige sneeuw / Poolklimaat (EF): Gemiddelde temperatuur van de warmste maand komt nooit boven 0°C."
+            }
+        ];
+
+        /* ================= GAME STATE VARIABLES ================= */
+        let currentGameMode = ''; 
+        let globalXP = 0;
+        
+        let flagDifficulty = 'makkelijk';
+        let flagScore = 0;
+        let flagLives = 3;
+        let flagStreak = 0;
+        let currentFlagIndex = 0;
+        let flagDeck = [];
+
+        let koppenMode = 'normaal';
+        let koppenScore = 0;
+        let koppenRound = 1;
+        let koppenCurrentItem = null;
+
+        let taskState = {
+            task1: { count: 0, target: 1, claimed: false },
+            task2: { count: 0, target: 3, claimed: false },
+            task3: { count: 0, target: 2, claimed: false }
+        };
+
+        /* ================= INTERACTIVE TUTORIAL STEPS ================= */
+        let currentTutorialStep = 0;
+        const tutorialSteps = [
+            {
+                title: "1. Welkom bij AKGuessr! 👋",
+                badge: "Basis",
+                badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+                icon: "🌍",
+                content: "AKGuessr is een interactieve aardrijkskunde-game waarin je je geografische kennis test. Speel spelmodi, verzamel XP en stijg in rang van <strong>Scout</strong> tot <strong>Master</strong>!"
+            },
+            {
+                title: "2. FlagGuessr 🚩",
+                badge: "Spelmodus 1",
+                badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+                icon: "🚩",
+                content: "Herken de vlag op het scherm. Kies het juiste land uit vier keuzes.<br><br>💡 <strong>Tip:</strong> Hoe meer goede antwoorden je achter elkaar geeft (Streak), hoe sneller je score en bonus-XP oplopen!"
+            },
+            {
+                title: "3. KöppenGuessr 🌡️",
+                badge: "Spelmodus 2",
+                badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+                icon: "📊",
+                content: "Analyseer klimaatdiagrammen:<br>• <span class='text-rose-400 font-bold'>Rode lijn:</span> Temperatuur per maand (°C)<br>• <span class='text-cyan-400 font-bold'>Blauwe staven:</span> Neerslag per maand (mm)<br><br>Kies de bijbehorende Köppen-klimaatcode (zoals <em>Cfb</em> voor zeeklimaat of <em>Af</em> voor tropisch regenwoud)."
+            },
+            {
+                title: "4. Dagelijkse Taken & Levels 🎯",
+                badge: "Voortgang",
+                badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+                icon: "⭐",
+                content: "Voltooi dagelijkse taken op het hoofdscherm om extra XP te verdienen. Klik rechtsboven op je **Level Badge** om je huidige rang, totale XP en doelen te bekijken!"
+            }
+        ];
+
+        function toggleInstructionsModal() {
+            playSoundEffect('click');
+            const modal = document.getElementById('instructions-modal');
+            if (modal) {
+                const isOpening = modal.classList.contains('hidden');
+                modal.classList.toggle('hidden');
+                if (isOpening) {
+                    currentTutorialStep = 0;
+                    renderTutorialStep();
+                }
+            }
+        }
+
+        function renderTutorialStep() {
+            const step = tutorialSteps[currentTutorialStep];
+            const container = document.getElementById('tutorial-step-container');
+            const dotsContainer = document.getElementById('tutorial-dots');
+            
+            container.innerHTML = `
+                <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-2xl">${step.icon}</span>
+                        <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase ${step.badgeColor}">
+                            ${step.badge}
+                        </span>
+                    </div>
+                    <h4 class="font-extrabold text-white text-base">${step.title}</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">${step.content}</p>
+                </div>
+            `;
+
+            // Dots indicator
+            dotsContainer.innerHTML = tutorialSteps.map((_, i) => `
+                <div class="w-2.5 h-2.5 rounded-full transition-all ${i === currentTutorialStep ? 'bg-amber-400 w-5' : 'bg-slate-700'}"></div>
+            `).join('');
+
+            // Buttons state
+            const prevBtn = document.getElementById('tutorial-prev-btn');
+            const nextBtn = document.getElementById('tutorial-next-btn');
+
+            prevBtn.disabled = currentTutorialStep === 0;
+            if (currentTutorialStep === tutorialSteps.length - 1) {
+                nextBtn.textContent = 'Klaar! 🚀';
+            } else {
+                nextBtn.textContent = 'Volgende →';
+            }
+        }
+
+        function nextTutorialStep() {
+            playSoundEffect('click');
+            if (currentTutorialStep < tutorialSteps.length - 1) {
+                currentTutorialStep++;
+                renderTutorialStep();
+            } else {
+                toggleInstructionsModal();
+            }
+        }
+
+        function prevTutorialStep() {
+            playSoundEffect('click');
+            if (currentTutorialStep > 0) {
+                currentTutorialStep--;
+                renderTutorialStep();
+            }
+        }
+
+        function updateXPDisplay() {
+            document.getElementById('global-xp').textContent = globalXP;
+            
+            const level = Math.floor(globalXP / 100) + 1;
+            const xpInCurrentLevel = globalXP % 100;
+
+            const levelEl = document.getElementById('player-level');
+            if (levelEl) levelEl.textContent = `Lvl ${level}`;
+
+            const progressBar = document.getElementById('xp-progress-bar');
+            if (progressBar) progressBar.style.width = `${xpInCurrentLevel}%`;
+
+            let rank = "Novice";
+            if (level >= 15) rank = "Master 🌍";
+            else if (level >= 10) rank = "Expert 📜";
+            else if (level >= 5) rank = "Explorer 🧭";
+            else if (level >= 2) rank = "Scout 🌱";
+            
+            const rankEl = document.getElementById('player-rank-title');
+            if (rankEl) rankEl.textContent = rank;
+        }
 
         function showScreen(screenId) {
             playSoundEffect('click');
@@ -711,7 +838,6 @@
             });
             const target = document.getElementById(screenId);
             if (target) target.classList.remove('hidden');
-
             const navBtn = document.getElementById('nav-menu-btn');
             if (navBtn) {
                 if (screenId === 'menu-screen') navBtn.classList.add('hidden');
@@ -719,140 +845,142 @@
             }
         }
 
-        function updateXPDisplay() {
-            const level = Math.floor(globalXP / 100) + 1;
-            const xpInCurrentLevel = globalXP % 100;
-            
-            document.getElementById('player-level').textContent = `Lvl ${level}`;
-            document.getElementById('global-xp').textContent = globalXP;
-            document.getElementById('xp-progress-bar').style.width = `${xpInCurrentLevel}%`;
-
-            let rank = "Novice";
-            if (level >= 15) rank = "Master";
-            else if (level >= 10) rank = "Expert";
-            else if (level >= 5) rank = "Explorer";
-            else if (level >= 2) rank = "Scout";
-            
-            document.getElementById('player-rank-title').textContent = rank;
-        }
-
+        /* ================= FLAGGUESSR ENGINE ================= */
         function startFlagGame(difficulty) {
-            playSoundEffect('click');
             currentGameMode = 'flag';
             flagDifficulty = difficulty;
             flagScore = 0;
             flagStreak = 0;
-            flagLives = 3;
-            currentFlagIndex = 0;
-
-            const pool = flagDatabase[difficulty] || flagDatabase.makkelijk;
-            flagDeck = shuffleArray(pool);
-
-            document.getElementById('flag-mode-badge').textContent = difficulty.toUpperCase();
+            flagLives = (difficulty === 'oneindig') ? 1 : 3;
             document.getElementById('flag-score').textContent = '0';
             document.getElementById('flag-streak').textContent = '0';
-            updateFlagLivesDisplay();
-
+            document.getElementById('flag-mode-badge').textContent = difficulty.replace('_', ' ').toUpperCase();
+            
+            let pool = [];
+            if (difficulty === 'oneindig') {
+                pool = [...flagDatabase.makkelijk, ...flagDatabase.gemiddeld, ...flagDatabase.moeilijk, ...flagDatabase.eu_special];
+            } else if (difficulty === 'eu_special') {
+                pool = [...flagDatabase.eu_special];
+            } else {
+                pool = [...(flagDatabase[difficulty] || flagDatabase.makkelijk)];
+            }
+            flagDeck = shuffleArray(pool);
+            currentFlagIndex = 0;
+            renderLives();
             showScreen('flag-screen');
             loadNextFlagQuestion();
-            updateTasksProgress('flag_played', 1);
         }
 
-        function updateFlagLivesDisplay() {
+        function renderLives() {
             const container = document.getElementById('flag-lives-container');
-            container.innerHTML = '';
-            for (let i = 0; i < 3; i++) {
-                const icon = document.createElement('i');
-                icon.className = i < flagLives ? 'fa-solid fa-heart' : 'fa-regular fa-heart opacity-30';
-                container.appendChild(icon);
+            if (flagDifficulty === 'oneindig') {
+                container.innerHTML = '<span class="text-xs text-amber-400 font-black">⚡ 1 LIFE SURVIVAL</span>';
+                return;
             }
+            let hearts = '';
+            for (let i = 0; i < 3; i++) {
+                if (i < flagLives) hearts += '<i class="fa-solid fa-heart animate-pulse"></i>';
+                else hearts += '<i class="fa-solid fa-heart text-slate-700"></i>';
+            }
+            container.innerHTML = hearts;
         }
 
         function loadNextFlagQuestion() {
+            const feedback = document.getElementById('flag-feedback');
+            feedback.classList.add('hidden');
             if (currentFlagIndex >= flagDeck.length) {
-                flagDeck = shuffleArray(flagDeck);
-                currentFlagIndex = 0;
+                if (flagDifficulty === 'oneindig') {
+                    flagDeck = shuffleArray([...flagDatabase.makkelijk, ...flagDatabase.gemiddeld, ...flagDatabase.moeilijk, ...flagDatabase.eu_special]);
+                    currentFlagIndex = 0;
+                } else {
+                    finishGameRound();
+                    return;
+                }
             }
-
             const current = flagDeck[currentFlagIndex];
+            
             const flagImg = document.getElementById('flag-image');
             flagImg.src = `https://flagcdn.com/w320/${current.code}.png`;
+            flagImg.onerror = function() {
+                this.src = `https://placehold.co/320x213/0f172a/38bdf8?text=${current.name}`;
+            };
             document.getElementById('flag-continent-badge').textContent = current.continent;
-
-            const options = shuffleArray([current.name, ...current.distractors]);
+            
+            let choices = [current.name];
+            let distractors = shuffleArray(current.distractors || ["België", "Duitsland", "Spanje"]).slice(0, 3);
+            choices = shuffleArray([...choices, ...distractors]);
             const grid = document.getElementById('flag-options-grid');
             grid.innerHTML = '';
-
-            options.forEach(option => {
+            choices.forEach(option => {
                 const btn = document.createElement('button');
-                btn.className = "w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700 text-white font-bold text-xs sm:text-sm transition shadow-md active:scale-95";
+                btn.className = "w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 font-bold text-sm text-slate-200 hover:text-white transition shadow-md active:scale-95";
                 btn.textContent = option;
                 btn.onclick = () => checkFlagAnswer(option, current.name, btn);
                 grid.appendChild(btn);
             });
-
-            document.getElementById('flag-feedback').classList.add('hidden');
         }
 
         function checkFlagAnswer(selected, correct, btnElement) {
+            updateTasksProgress('flag_played', 1);
             const grid = document.getElementById('flag-options-grid');
             const buttons = grid.querySelectorAll('button');
             buttons.forEach(b => b.disabled = true);
-
             const feedback = document.getElementById('flag-feedback');
-            feedback.classList.remove('hidden');
 
             if (selected === correct) {
                 playSoundEffect('correct');
-                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-xs sm:text-sm border border-emerald-400 shadow-neon-green";
-                flagScore += 100 + (flagStreak * 10);
+                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-sm border border-emerald-400 shadow-neon-green";
+                
                 flagStreak++;
-                globalXP += 15;
+                flagScore += 100 + (flagStreak * 10);
+                globalXP += 25;
+                document.getElementById('flag-score').textContent = flagScore;
+                document.getElementById('flag-streak').textContent = flagStreak;
                 updateXPDisplay();
                 updateTasksProgress('streak', flagStreak);
 
-                feedback.className = "p-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-extrabold text-xs text-center";
-                feedback.textContent = "✓ Uitstekend! +100 Score";
+                feedback.className = "p-4 rounded-2xl text-center font-black text-sm bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg block animate-bounce";
+                feedback.textContent = `🎉 Goed gedaan! (+${100 + (flagStreak * 10)} pt)`;
+                setTimeout(() => {
+                    currentFlagIndex++;
+                    loadNextFlagQuestion();
+                }, 1200);
             } else {
                 playSoundEffect('wrong');
-                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-rose-600 text-white font-black text-xs sm:text-sm border border-rose-400 shake-anim";
+                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-rose-600 text-white font-black text-sm border border-rose-400 shake-anim";
+                
                 buttons.forEach(b => {
                     if (b.textContent === correct) {
-                        b.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-xs sm:text-sm border border-emerald-400";
+                        b.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-sm border border-emerald-400";
                     }
                 });
                 flagStreak = 0;
+                document.getElementById('flag-streak').textContent = '0';
                 flagLives--;
-                updateFlagLivesDisplay();
-
-                feedback.className = "p-3 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 font-extrabold text-xs text-center";
-                feedback.textContent = `✕ Helaas! Het juiste antwoord was: ${correct}`;
-            }
-
-            document.getElementById('flag-score').textContent = flagScore;
-            document.getElementById('flag-streak').textContent = flagStreak;
-
-            setTimeout(() => {
+                renderLives();
+                feedback.className = "p-4 rounded-2xl text-center font-black text-sm bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-lg block";
+                feedback.textContent = `❌ Helaas! Het juiste antwoord was ${correct}.`;
+                
                 if (flagLives <= 0) {
-                    finishGameRound();
+                    setTimeout(() => finishGameRound(), 1600);
                 } else {
-                    currentFlagIndex++;
-                    loadNextFlagQuestion();
+                    setTimeout(() => {
+                        currentFlagIndex++;
+                        loadNextFlagQuestion();
+                    }, 1800);
                 }
-            }, 1400);
+            }
         }
 
+        /* ================= KÖPPENGUESSR ENGINE & CHART CANVAS ================= */
         function startKoppenGame(mode) {
-            playSoundEffect('click');
             currentGameMode = 'koppen';
             koppenMode = mode;
             koppenScore = 0;
             koppenRound = 1;
-
-            document.getElementById('koppen-mode-badge').textContent = mode.toUpperCase();
             document.getElementById('koppen-score').textContent = '0';
             document.getElementById('koppen-round-num').textContent = '1';
-
+            document.getElementById('koppen-mode-badge').textContent = mode.toUpperCase();
             showScreen('koppen-screen');
             loadNextKoppenQuestion();
         }
@@ -860,48 +988,46 @@
         function loadNextKoppenQuestion() {
             document.getElementById('koppen-explanation').classList.add('hidden');
             document.getElementById('koppen-round-num').textContent = koppenRound;
-            document.getElementById('koppen-score').textContent = koppenScore;
-
-            const randomItem = koppenDatabase[Math.floor(Math.random() * koppenDatabase.length)];
-            koppenCurrentItem = randomItem;
-
-            renderClimateChart(randomItem.temp, randomItem.precip);
-
-            const options = shuffleArray(koppenDatabase.map(k => k.code));
+            
+            const item = koppenDatabase[Math.floor(Math.random() * koppenDatabase.length)];
+            koppenCurrentItem = item;
+            renderClimateChart(item.temp, item.precip);
+            
+            let choices = [item.code];
+            let otherItems = koppenDatabase.filter(k => k.code !== item.code);
+            let distractors = shuffleArray(otherItems).slice(0, 3).map(k => k.code);
+            choices = shuffleArray([...choices, ...distractors]);
             const grid = document.getElementById('koppen-options-grid');
             grid.innerHTML = '';
-
-            options.forEach(code => {
+            choices.forEach(option => {
                 const btn = document.createElement('button');
-                btn.className = "w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700 text-white font-bold text-xs sm:text-sm transition shadow-md text-left truncate active:scale-95";
-                btn.textContent = code;
-                btn.onclick = () => checkKoppenAnswer(code, randomItem, btn);
+                btn.className = "w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 font-bold text-xs sm:text-sm text-slate-200 hover:text-white transition shadow-md active:scale-95 text-left";
+                btn.textContent = option;
+                btn.onclick = () => checkKoppenAnswer(option, item, btn);
                 grid.appendChild(btn);
             });
         }
 
-        function renderClimateChart(temps, precip) {
+        function renderClimateChart(temps, precips) {
             const canvas = document.getElementById('climate-chart');
             const ctx = canvas.getContext('2d');
-            
-            canvas.width = canvas.parentElement.clientWidth - 32;
-            canvas.height = 220;
-
-            const width = canvas.width;
-            const height = canvas.height;
-            const paddingLeft = 35;
-            const paddingRight = 35;
-            const paddingTop = 25;
-            const paddingBottom = 30;
-
-            const chartW = width - paddingLeft - paddingRight;
-            const chartH = height - paddingTop - paddingBottom;
-            const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * 2;
+            canvas.height = 220 * 2;
+            ctx.scale(2, 2);
+            const width = rect.width;
+            const height = 220;
             ctx.clearRect(0, 0, width, height);
 
-            // Gridlijnen
-            ctx.strokeStyle = '#1e293b';
+            const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+            const paddingLeft = 30;
+            const paddingRight = 30;
+            const paddingTop = 20;
+            const paddingBottom = 30;
+            const chartW = width - paddingLeft - paddingRight;
+            const chartH = height - paddingTop - paddingBottom;
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
             ctx.lineWidth = 1;
             for (let i = 0; i <= 4; i++) {
                 const y = paddingTop + (chartH / 4) * i;
@@ -911,22 +1037,18 @@
                 ctx.stroke();
             }
 
-            // Neerslag staven
             const maxP = 350;
-            const barWidth = (chartW / 12) * 0.55;
-            precip.forEach((p, i) => {
-                const x = paddingLeft + (chartW / 12) * i + (chartW / 24) - barWidth / 2;
+            const barWidth = (chartW / 12) * 0.5;
+            precips.forEach((p, i) => {
+                const x = paddingLeft + (chartW / 12) * i + (chartW / 24) - (barWidth / 2);
                 const barH = (p / maxP) * chartH;
                 const y = paddingTop + chartH - barH;
-
-                const grad = ctx.createLinearGradient(0, y, 0, y + barH);
-                grad.addColorStop(0, '#38bdf8');
-                grad.addColorStop(1, '#0284c7');
-                ctx.fillStyle = grad;
-                ctx.fillRect(x, y, barWidth, barH);
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.75)';
+                ctx.beginPath();
+                ctx.roundRect(x, y, barWidth, barH, [3, 3, 0, 0]);
+                ctx.fill();
             });
 
-            // Temperatuur Lijn
             const minT = -40;
             const maxT = 40;
             ctx.beginPath();
