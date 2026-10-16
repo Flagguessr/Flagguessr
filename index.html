@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AKGuessr Ultra - Ultimate Geography Experience</title>
+    <title>AKGuessr Ultra - Geografie Game</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -24,18 +24,11 @@
                             500: '#10b981',
                             600: '#059669',
                             700: '#047857',
-                        },
-                        cyber: {
-                            purple: '#a855f7',
-                            pink: '#ec4899',
-                            blue: '#3b82f6',
-                            cyan: '#06b6d4',
                         }
                     },
                     boxShadow: {
                         'neon-green': '0 0 25px rgba(16, 185, 129, 0.4)',
                         'neon-blue': '0 0 25px rgba(59, 130, 246, 0.4)',
-                        'neon-pink': '0 0 25px rgba(236, 72, 153, 0.4)',
                         'neon-purple': '0 0 25px rgba(168, 85, 247, 0.4)',
                     }
                 }
@@ -47,16 +40,14 @@
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-8px); }
         }
-        .animate-float {
-            animation: float 4s ease-in-out infinite;
-        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        
         @keyframes pulse-glow {
             0%, 100% { opacity: 0.6; transform: scale(1); }
             50% { opacity: 1; transform: scale(1.05); }
         }
-        .animate-pulse-glow {
-            animation: pulse-glow 2.5s infinite;
-        }
+        .animate-pulse-glow { animation: pulse-glow 2.5s infinite; }
+        
         .shake-anim {
             animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both;
         }
@@ -66,9 +57,9 @@
             30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
             40%, 60% { transform: translate3d(6px, 0, 0); }
         }
-        /* Glassmorphism utility */
+
         .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -77,66 +68,55 @@
             border-color: rgba(255, 255, 255, 0.2);
             background: rgba(30, 41, 59, 0.85);
         }
-        /* Gradient Text */
+
         .gradient-text-cyber {
             background: linear-gradient(135deg, #60a5fa 0%, #a855f7 50%, #ec4899 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .gradient-text-emerald {
-            background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #06b6d4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        /* Custom scrollbar */
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #020617; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #334155; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white relative overflow-x-hidden">
-    <!-- Background Particle Canvas -->
-    <canvas id="bg-particles" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased relative overflow-x-hidden">
+    <!-- Background Particle & Hologram Canvas -->
+    <canvas id="bg-particles" class="fixed inset-0 pointer-events-none z-0 opacity-80"></canvas>
+
     
     <!-- ZWEVENDE VRAAGTEKEN KNOP (LINKS MIDDEN) -->
     <button onclick="toggleInstructionsModal()" title="Gebruiksaanwijzing" class="fixed left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black flex items-center justify-center transition-all shadow-neon-purple hover:scale-110 active:scale-95 group">
         <i class="fa-solid fa-circle-question text-2xl group-hover:rotate-12 transition-transform"></i>
-        <!-- Tooltip -->
         <span class="absolute left-16 bg-slate-900 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
             Gebruiksaanwijzing
         </span>
     </button>
 
-    <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 transition-all">
+    <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between relative z-10">
-            <!-- Logo & Brand -->
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-3 cursor-pointer group" onclick="showScreen('menu-screen')">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
-                        <i class="fa-solid fa-earth-americas text-xl animate-pulse-glow"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-black text-2xl tracking-tight gradient-text-cyber">AKGuessr</span>
-                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 uppercase tracking-widest shadow-sm">PRO 1000X</span>
-                        </div>
-                    </div>
+            <!-- Logo -->
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="showScreen('menu-screen')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-earth-americas text-xl animate-pulse-glow"></i>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="font-black text-2xl tracking-tight gradient-text-cyber">AKGuessr</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 uppercase tracking-widest shadow-sm">PRO</span>
                 </div>
             </div>
+
             <!-- Header Action Controls -->
             <div class="flex items-center gap-3">
-                <!-- Sound Toggle Button -->
                 <button id="sound-toggle-btn" onclick="toggleAudio()" title="Geluid Aan/Uit" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white border border-slate-700/80 flex items-center justify-center transition text-sm">
                     <i id="sound-icon" class="fa-solid fa-volume-high text-emerald-400"></i>
                 </button>
-                <!-- Navigation Home Button -->
                 <button id="nav-menu-btn" onclick="showScreen('menu-screen')" class="hidden px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition flex items-center gap-2">
                     <i class="fa-solid fa-house"></i>
                     <span>Menu</span>
                 </button>
                 
-                <!-- XP & Level Systeem (KLIKBAAR gemaakt voor Level Status Modal) -->
+                <!-- XP & Level Badge (Klikbaar voor details) -->
                 <div onclick="openLevelModal()" class="glass-panel px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-3 shadow-md border border-slate-700/60 cursor-pointer hover:border-amber-400/50 transition-all group">
                     <div class="flex items-center justify-center px-2 py-1 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 font-black text-xs shadow-sm group-hover:scale-105 transition-transform">
                         <span id="player-level">Lvl 1</span>
@@ -154,10 +134,10 @@
             </div>
         </div>
     </header>
+
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center relative z-10">
         <!-- ================= MAIN MENU DASHBOARD ================= -->
         <div id="menu-screen" class="space-y-8 py-4">
-            <!-- Hero Title -->
             <div class="text-center max-w-2xl mx-auto space-y-3">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-extrabold uppercase tracking-widest animate-float">
                     ⚡ De Ultieme Aardrijkskunde Challenge
@@ -170,13 +150,9 @@
                 </p>
             </div>
 
-            <!-- GRID INCLUSIEF RECHTS DE DAGELIJKSE TAKEN TASKBAR -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-start">
-                
-                <!-- LEFT CARD: FLAGGUESSR -->
+                <!-- FLAGGUESSR CARD -->
                 <div class="glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-2xl relative overflow-hidden group transition-all duration-300">
-                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/20 transition-all"></div>
-                    
                     <div class="space-y-4 relative z-10">
                         <div class="flex items-center justify-between">
                             <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-500 text-white flex items-center justify-center text-3xl shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
@@ -191,23 +167,22 @@
                             <p class="text-slate-400 text-xs mt-1 leading-relaxed">Herken de landsvlaggen snel en ontwijk de slimme afleiders en doppelgängers!</p>
                         </div>
                     </div>
-                    <!-- Level Selector Buttons -->
                     <div class="space-y-2.5 pt-2 relative z-10">
                         <button onclick="startFlagGame('makkelijk')" class="w-full py-2.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-emerald-600/20 border border-slate-700/80 hover:border-emerald-500/60 text-left font-bold text-xs transition flex items-center justify-between group/btn shadow-md">
                             <span class="flex items-center gap-2">🌱 <span class="text-slate-200 group-hover/btn:text-white">Makkelijk</span></span>
-                            <span class="text-[10px] text-slate-500 font-semibold group-hover/btn:text-emerald-400 transition">Basis →</span>
+                            <span class="text-[10px] text-slate-500 font-semibold group-hover/btn:text-emerald-400 transition">Start →</span>
                         </button>
                         <button onclick="startFlagGame('gemiddeld')" class="w-full py-2.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-amber-600/20 border border-slate-700/80 hover:border-amber-500/60 text-left font-bold text-xs transition flex items-center justify-between group/btn shadow-md">
                             <span class="flex items-center gap-2">⚡ <span class="text-slate-200 group-hover/btn:text-white">Gemiddeld</span></span>
-                            <span class="text-[10px] text-slate-500 font-semibold group-hover/btn:text-amber-400 transition">Wereld →</span>
+                            <span class="text-[10px] text-slate-500 font-semibold group-hover/btn:text-amber-400 transition">Start →</span>
                         </button>
                         <button onclick="startFlagGame('moeilijk')" class="w-full py-2.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-rose-600/20 border border-slate-700/80 hover:border-rose-500/60 text-left font-bold text-xs transition flex items-center justify-between group/btn shadow-md">
                             <span class="flex items-center gap-2">🔥 <span class="text-slate-200 group-hover/btn:text-white">Moeilijk</span></span>
-                            <span class="text-[10px] text-slate-500 font-semibold group-hover/btn:text-rose-400 transition">Strikvragen →</span>
+                            <span class="text-[10px] text-slate-500 font-semibold group-hover/btn:text-rose-400 transition">Start →</span>
                         </button>
                         <button onclick="startFlagGame('eu_special')" class="w-full py-2.5 px-4 rounded-2xl bg-indigo-900/40 hover:bg-indigo-600/30 border border-indigo-500/40 hover:border-indigo-400 text-left font-bold text-xs transition flex items-center justify-between group/btn shadow-md">
                             <span class="flex items-center gap-2">🇪🇺 <span class="text-indigo-200 group-hover/btn:text-white">EU Special</span></span>
-                            <span class="text-[10px] text-indigo-400 font-semibold group-hover/btn:text-indigo-300 transition">Europa →</span>
+                            <span class="text-[10px] text-indigo-400 font-semibold group-hover/btn:text-indigo-300 transition">Start →</span>
                         </button>
                         <button onclick="startFlagGame('oneindig')" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black text-xs transition shadow-neon-blue flex items-center justify-between group/infinity">
                             <span class="flex items-center gap-2">♾️ <span>Oneindig Mode</span></span>
@@ -216,9 +191,8 @@
                     </div>
                 </div>
 
-                <!-- MIDDLE CARD: KÖPPENGUESSR -->
+                <!-- KÖPPENGUESSR CARD -->
                 <div class="glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-2xl relative overflow-hidden group transition-all duration-300">
-                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/20 transition-all"></div>
                     <div class="space-y-4 relative z-10">
                         <div class="flex items-center justify-between">
                             <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center text-3xl shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
@@ -233,7 +207,6 @@
                             <p class="text-slate-400 text-xs mt-1 leading-relaxed">Analyseer klimaatdiagrammen (temperatuur & neerslag) en kraak de Köppen-codes!</p>
                         </div>
                     </div>
-                    <!-- Category Selector Buttons -->
                     <div class="space-y-2.5 pt-2 relative z-10">
                         <button onclick="startKoppenGame('normaal')" class="w-full py-3 px-4 rounded-2xl bg-slate-800/90 hover:bg-emerald-600/20 border border-slate-700/80 hover:border-emerald-500/60 text-left font-bold text-xs transition flex items-center justify-between group/btn shadow-md">
                             <span class="flex items-center gap-2">🎯 <span class="text-slate-200 group-hover/btn:text-white">Normaal (10 Vragen)</span></span>
@@ -246,7 +219,7 @@
                     </div>
                 </div>
 
-                <!-- RIGHT TASKBAR: DAGELIJKSE TAKEN / DAILY QUESTS -->
+                <!-- RIGHT TASKBAR: DAGELIJKSE TAKEN -->
                 <div class="glass-panel rounded-3xl p-6 space-y-4 shadow-2xl border border-amber-500/20 relative overflow-hidden">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                         <div class="flex items-center gap-2.5">
@@ -255,7 +228,7 @@
                             </div>
                             <div>
                                 <h3 class="font-extrabold text-sm text-white">Dagelijkse Taken</h3>
-                                <p class="text-[10px] text-slate-400">Resets over 18u</p>
+                                <p class="text-[10px] text-slate-400">Nieuwe opdrachten beschikbaar</p>
                             </div>
                         </div>
                         <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 uppercase">
@@ -263,7 +236,6 @@
                         </span>
                     </div>
 
-                    <!-- Tasks List -->
                     <div class="space-y-3" id="daily-tasks-list">
                         <!-- Task 1 -->
                         <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
@@ -317,12 +289,108 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
 
-        <!-- ... existing game screens (flag-screen, koppen-screen, results-screen) ... -->
-                        <i class="fa-solid fa-arrow-right"></i>
+        <!-- ================= FLAGGUESSR SCREEN ================= -->
+        <div id="flag-screen" class="hidden max-w-xl mx-auto w-full py-4">
+            <div class="glass-panel rounded-3xl p-6 space-y-6 shadow-2xl relative border border-slate-800">
+                <div class="flex justify-between items-center">
+                    <span id="flag-mode-badge" class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-black uppercase">
+                        MAKKELIJK
+                    </span>
+                    <div id="flag-lives-container" class="flex gap-1.5 text-rose-500 text-lg">
+                        <i class="fa-solid fa-heart"></i>
+                        <i class="fa-solid fa-heart"></i>
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                </div>
+
+                <!-- Flag Display -->
+                <div class="relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center p-6 shadow-inner min-h-[200px]">
+                    <img id="flag-image" src="" alt="Vlag" class="max-h-40 rounded-lg shadow-2xl object-contain transition-all duration-300">
+                    <span id="flag-continent-badge" class="absolute top-3 left-3 text-[11px] font-extrabold bg-slate-950/80 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300">
+                        🇪🇺 Europa
+                    </span>
+                </div>
+
+                <!-- Score / Streak counter -->
+                <div class="flex justify-between text-xs font-extrabold text-slate-400 px-2">
+                    <span>SCORE: <strong id="flag-score" class="text-emerald-400 text-sm">0</strong></span>
+                    <span>STREAK: <strong id="flag-streak" class="text-amber-400 text-sm">0</strong> 🔥</span>
+                </div>
+
+                <!-- Options Grid -->
+                <div id="flag-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Dynamic Buttons -->
+                </div>
+
+                <!-- Feedback Banner -->
+                <div id="flag-feedback" class="hidden p-4 rounded-2xl text-center font-black text-sm"></div>
+            </div>
+        </div>
+
+        <!-- ================= KÖPPENGUESSR SCREEN ================= -->
+        <div id="koppen-screen" class="hidden max-w-2xl mx-auto w-full py-4">
+            <div class="glass-panel rounded-3xl p-6 space-y-6 shadow-2xl relative border border-slate-800">
+                <div class="flex justify-between items-center">
+                    <span id="koppen-mode-badge" class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-black uppercase">
+                        NORMAAL
+                    </span>
+                    <span class="text-xs font-bold text-slate-400">Ronde <span id="koppen-round-num" class="text-white font-extrabold">1</span> / 10</span>
+                    <span class="text-xs font-extrabold text-slate-400">SCORE: <strong id="koppen-score" class="text-emerald-400 text-sm">0</strong></span>
+                </div>
+
+                <!-- Climate Chart Canvas -->
+                <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-inner">
+                    <div class="flex justify-between items-center mb-2 text-[11px] font-bold text-slate-400">
+                        <span class="text-rose-400 flex items-center gap-1"><i class="fa-solid fa-temperature-high"></i> Temp (°C)</span>
+                        <span class="text-cyan-400 flex items-center gap-1"><i class="fa-solid fa-cloud-rain"></i> Neerslag (mm)</span>
+                    </div>
+                    <canvas id="climate-chart" class="w-full h-56"></canvas>
+                </div>
+
+                <!-- Options Grid -->
+                <div id="koppen-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Dynamic Buttons -->
+                </div>
+
+                <!-- Explanation Box -->
+                <div id="koppen-explanation" class="hidden bg-slate-900/90 border border-slate-800 p-4 rounded-2xl space-y-3">
+                    <div id="koppen-result-title" class="font-extrabold text-sm"></div>
+                    <p id="koppen-result-text" class="text-xs text-slate-300 leading-relaxed"></p>
+                    <button onclick="nextKoppenQuestion()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition">
+                        Volgende Vraag →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= RESULTS SCREEN ================= -->
+        <div id="results-screen" class="hidden max-w-md mx-auto w-full py-8 text-center space-y-6">
+            <div class="glass-panel rounded-3xl p-8 space-y-6 shadow-2xl border border-slate-800 relative">
+                <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 font-black text-4xl flex items-center justify-center mx-auto shadow-neon-purple animate-bounce">
+                    🏆
+                </div>
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-black text-white">Ronde Voltooid!</h2>
+                    <p id="results-subtitle" class="text-xs text-slate-400 font-medium">Geweldige prestatie!</p>
+                </div>
+                <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 space-y-1">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Eindscore</span>
+                    <div id="results-final-score" class="text-4xl font-black gradient-text-cyber">0 pt</div>
+                </div>
+                <div class="space-y-3">
+                    <button onclick="replayCurrentGame()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-sm transition shadow-neon-green">
+                        Opnieuw Spelen
+                    </button>
+                    <button onclick="showScreen('menu-screen')" class="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition">
+                        Hoofdmenu
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- ================= LEVEL STATUS MODAL ================= -->
         <div id="level-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
             <div class="glass-panel border border-slate-800 max-w-md w-full rounded-3xl p-6 space-y-6 shadow-2xl relative text-center">
@@ -338,7 +406,6 @@
                     <p class="text-xs text-slate-400">Je voortgang naar het volgende level:</p>
                 </div>
 
-                <!-- XP Status Card -->
                 <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 space-y-3">
                     <div class="flex justify-between text-xs font-bold">
                         <span class="text-slate-400">Totale XP:</span>
@@ -353,7 +420,6 @@
                     </div>
                 </div>
 
-                <!-- Unlockable Ranks List -->
                 <div class="text-left space-y-2">
                     <h4 class="text-xs font-black uppercase text-slate-400 tracking-wider">Geografische Ranglijst</h4>
                     <div class="space-y-1.5 text-xs">
@@ -382,18 +448,60 @@
             </div>
         </div>
 
-        <!-- ... existing instructions modal ... -->
+        <!-- ================= INSTRUCTIONS MODAL ================= -->
+        <div id="instructions-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div class="glass-panel border border-slate-800 max-w-lg w-full rounded-3xl p-6 space-y-6 shadow-2xl relative text-left">
+                <!-- Skip / Sluiten Knop -->
+                <button onclick="skipTutorial()" class="absolute top-5 right-5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs font-bold transition flex items-center gap-1.5">
+                    <span>Overslaan</span>
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl font-black">
+                        ?
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-white">Hoe werkt AKGuessr?</h2>
+                        <p class="text-xs text-slate-400">Snelle startgids voor beginnende spelers</p>
+                    </div>
+                </div>
+
+                <!-- Tutorial stappen -->
+                <div id="tutorial-step-container" class="space-y-4 text-xs text-slate-300 leading-relaxed">
+                    <!-- Dynamic tutorial step content loaded by JS -->
+                </div>
+
+                <!-- Navigatie tussen stappen -->
+                <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                    <div class="flex items-center gap-1.5" id="tutorial-dots">
+                        <!-- Dots dynamically rendered -->
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="tutorial-prev-btn" onclick="prevTutorialStep()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition disabled:opacity-40">
+                            Vorige
+                        </button>
+                        <button id="tutorial-next-btn" onclick="nextTutorialStep()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition">
+                            Volgende
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
-        /* ================= AUDIO SYNTHESIZER ENGINE (Web Audio API) ================= */
+        /* ================= AUDIO SYNTHESIZER ENGINE ================= */
         let audioCtx = null;
         let isMuted = false;
+
         function initAudio() {
             if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
             }
         }
+
         function toggleAudio() {
             isMuted = !isMuted;
             const icon = document.getElementById('sound-icon');
@@ -401,232 +509,199 @@
                 icon.className = 'fa-solid fa-volume-xmark text-rose-400';
             } else {
                 icon.className = 'fa-solid fa-volume-high text-emerald-400';
-                playAudioTone(600, 'sine', 0.08);
             }
         }
-        function playAudioTone(freq, type = 'sine', duration = 0.1, gainVal = 0.15) {
-            if (isMuted) return;
-            try {
-                initAudio();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {
-                console.log("Audio play blocked", e);
-            }
-        }
-        function playSoundEffect(effect) {
+
+        function playSoundEffect(type) {
             if (isMuted) return;
             initAudio();
-            if (effect === 'correct') {
-                playAudioTone(523.25, 'sine', 0.12, 0.2);
-                setTimeout(() => playAudioTone(659.25, 'sine', 0.12, 0.2), 80);
-                setTimeout(() => playAudioTone(783.99, 'sine', 0.15, 0.25), 160);
-                setTimeout(() => playAudioTone(1046.50, 'triangle', 0.25, 0.3), 240);
-            } else if (effect === 'wrong') {
-                playAudioTone(220, 'sawtooth', 0.15, 0.2);
-                setTimeout(() => playAudioTone(196, 'sawtooth', 0.25, 0.25), 100);
-            } else if (effect === 'click') {
-                playAudioTone(800, 'sine', 0.04, 0.08);
-            } else if (effect === 'fanfare') {
-                [523, 659, 783, 1046, 1318].forEach((f, i) => {
-                    setTimeout(() => playAudioTone(f, 'triangle', 0.2, 0.25), i * 90);
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(164.81, now + 0.12);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+                osc.start(now);
+                osc.stop(now + 0.28);
+            } else if (type === 'fanfare') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const noteOsc = audioCtx.createOscillator();
+                    const noteGain = audioCtx.createGain();
+                    noteOsc.connect(noteGain);
+                    noteGain.connect(audioCtx.destination);
+                    noteOsc.type = 'triangle';
+                    noteOsc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                    noteGain.gain.setValueAtTime(0.2, now + idx * 0.1);
+                    noteGain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+                    noteOsc.start(now + idx * 0.1);
+                    noteOsc.stop(now + idx * 0.1 + 0.3);
                 });
             }
         }
 
-        /* ================= BACKGROUND PARTICLES CANVAS ================= */
+        /* ================= BACKGROUND HOLOGRAPHIC MAP CANVAS ================= */
         const bgCanvas = document.getElementById('bg-particles');
         const bgCtx = bgCanvas.getContext('2d');
-        let particles = [];
+
+        // Gedetailleerde geografische vectoren voor een holografische platte wereldkaart (0.0 - 1.0)
+        const continentPolygons = [
+            // Noord-Amerika
+            [[0.10, 0.18], [0.18, 0.15], [0.28, 0.16], [0.32, 0.28], [0.26, 0.45], [0.18, 0.42], [0.14, 0.32], [0.08, 0.25]],
+            // Groenland
+            [[0.32, 0.08], [0.42, 0.07], [0.40, 0.18], [0.33, 0.16]],
+            // Zuid-Amerika
+            [[0.24, 0.48], [0.34, 0.52], [0.36, 0.65], [0.30, 0.85], [0.25, 0.90], [0.22, 0.72], [0.21, 0.55]],
+            // Europa
+            [[0.44, 0.18], [0.52, 0.16], [0.58, 0.22], [0.56, 0.35], [0.47, 0.36], [0.43, 0.28]],
+            // Afrika
+            [[0.42, 0.40], [0.58, 0.40], [0.62, 0.55], [0.58, 0.78], [0.50, 0.86], [0.43, 0.68], [0.40, 0.52]],
+            // Azië
+            [[0.58, 0.16], [0.82, 0.14], [0.92, 0.22], [0.94, 0.42], [0.82, 0.52], [0.72, 0.50], [0.62, 0.34]],
+            // Australië
+            [[0.76, 0.62], [0.88, 0.60], [0.90, 0.78], [0.82, 0.85], [0.75, 0.76]],
+            // Japan
+            [[0.88, 0.28], [0.91, 0.30], [0.89, 0.38], [0.87, 0.33]]
+        ];
+
+        let holoGridOffset = 0;
+        let holoDataPoints = [];
+        let scanlineY = 0;
+
         function resizeBgCanvas() {
             bgCanvas.width = window.innerWidth;
             bgCanvas.height = window.innerHeight;
+            
+            // Genereer holografische dataknooppunten op de kaart
+            holoDataPoints = [];
+            for (let i = 0; i < 45; i++) {
+                holoDataPoints.push({
+                    x: Math.random() * bgCanvas.width,
+                    y: Math.random() * bgCanvas.height,
+                    radius: Math.random() * 3 + 1.5,
+                    pulse: Math.random() * Math.PI * 2,
+                    speed: 0.02 + Math.random() * 0.03
+                });
+            }
         }
         window.addEventListener('resize', resizeBgCanvas);
         resizeBgCanvas();
-        for (let i = 0; i < 45; i++) {
-            particles.push({
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                radius: Math.random() * 2 + 1,
-                vx: (Math.random() - 0.5) * 0.4,
-                vy: (Math.random() - 0.5) * 0.4,
-                alpha: Math.random() * 0.5 + 0.2
-            });
-        }
+
         function animateBgParticles() {
             bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-            particles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                if (p.x < 0) p.x = bgCanvas.width;
-                if (p.x > bgCanvas.width) p.x = 0;
-                if (p.y < 0) p.y = bgCanvas.height;
-                if (p.y > bgCanvas.height) p.y = 0;
+
+            const w = bgCanvas.width;
+            const h = bgCanvas.height;
+
+            // 1. Cyberpunk Holografisch Raster (Groen/Cyan Tech Lines)
+            bgCtx.strokeStyle = 'rgba(16, 185, 129, 0.08)';
+            bgCtx.lineWidth = 1;
+
+            const gridSize = 36;
+            holoGridOffset = (holoGridOffset + 0.3) % gridSize;
+
+            for (let x = 0; x < w; x += gridSize) {
                 bgCtx.beginPath();
-                bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                bgCtx.fillStyle = `rgba(52, 211, 153, ${p.alpha})`;
+                bgCtx.moveTo(x, 0);
+                bgCtx.lineTo(x, h);
+                bgCtx.stroke();
+            }
+            for (let y = holoGridOffset; y < h; y += gridSize) {
+                bgCtx.beginPath();
+                bgCtx.moveTo(0, y);
+                bgCtx.lineTo(w, y);
+                bgCtx.stroke();
+            }
+
+            // 2. Holografische Platte Wereldkaart (Vectoren + Glow)
+            bgCtx.save();
+            bgCtx.fillStyle = 'rgba(16, 185, 129, 0.06)';
+            bgCtx.strokeStyle = 'rgba(52, 211, 153, 0.55)';
+            bgCtx.lineWidth = 1.8;
+            bgCtx.shadowColor = 'rgba(16, 185, 129, 0.8)';
+            bgCtx.shadowBlur = 14;
+
+            continentPolygons.forEach(poly => {
+                bgCtx.beginPath();
+                poly.forEach((pt, idx) => {
+                    const px = pt[0] * w;
+                    const py = pt[1] * h;
+                    if (idx === 0) bgCtx.moveTo(px, py);
+                    else bgCtx.lineTo(px, py);
+                });
+                bgCtx.closePath();
                 bgCtx.fill();
+                bgCtx.stroke();
             });
+            bgCtx.restore();
+
+            // 3. Bewegende Hologram Scanlijn Effect
+            scanlineY = (scanlineY + 1.5) % h;
+            bgCtx.fillStyle = 'rgba(52, 211, 153, 0.08)';
+            bgCtx.fillRect(0, scanlineY, w, 4);
+
+            // Statische scanlijnen
+            bgCtx.fillStyle = 'rgba(6, 182, 212, 0.02)';
+            for (let i = 0; i < h; i += 4) {
+                bgCtx.fillRect(0, i, w, 1.5);
+            }
+
+            // 4. Holografische Datapunten & Verbindingslijnen
+            holoDataPoints.forEach((pt, i) => {
+                pt.pulse += pt.speed;
+                const alpha = (Math.sin(pt.pulse) + 1) / 2 * 0.8 + 0.2;
+                const radius = pt.radius + Math.sin(pt.pulse) * 1.5;
+
+                bgCtx.beginPath();
+                bgCtx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
+                bgCtx.fillStyle = `rgba(52, 211, 153, ${alpha})`;
+                bgCtx.shadowColor = 'rgba(52, 211, 153, 0.9)';
+                bgCtx.shadowBlur = 10;
+                bgCtx.fill();
+                bgCtx.shadowBlur = 0;
+
+                for (let j = i + 1; j < holoDataPoints.length; j++) {
+                    const pt2 = holoDataPoints[j];
+                    const dist = Math.hypot(pt.x - pt2.x, pt.y - pt2.y);
+                    if (dist < 130) {
+                        bgCtx.beginPath();
+                        bgCtx.moveTo(pt.x, pt.y);
+                        bgCtx.lineTo(pt2.x, pt2.y);
+                        bgCtx.strokeStyle = `rgba(16, 185, 129, ${(1 - dist / 130) * 0.25})`;
+                        bgCtx.lineWidth = 1;
+                        bgCtx.stroke();
+                    }
+                }
+            });
+
             requestAnimationFrame(animateBgParticles);
         }
         animateBgParticles();
-
-        /* ================= DATASETS ================= */
-        const flagDatabase = {
-            makkelijk: [
-                { name: "Nederland", code: "nl", continent: "🇪🇺 Europa", distractors: ["België", "Duitsland", "Frankrijk"] },
-                { name: "Frankrijk", code: "fr", continent: "🇪🇺 Europa", distractors: ["Italië", "Nederland", "België"] },
-                { name: "Duitsland", code: "de", continent: "🇪🇺 Europa", distractors: ["Oostenrijk", "België", "Polen"] },
-                { name: "Verenigd Koninkrijk", code: "gb", continent: "🇪🇺 Europa", distractors: ["Australië", "Nieuw-Zeeland", "Ierland"] },
-                { name: "Verenigde Staten", code: "us", continent: "🌎 Noord-Amerika", distractors: ["Canada", "Liberia", "Puerto Rico"] },
-                { name: "Spanje", code: "es", continent: "🇪🇺 Europa", distractors: ["Portugal", "Italië", "Griekenland"] },
-                { name: "Italië", code: "it", continent: "🇪🇺 Europa", distractors: ["Ierland", "Hongarije", "Frankrijk"] },
-                { name: "Japan", code: "jp", continent: "🌏 Azië", distractors: ["Zuid-Korea", "China", "Bangladesh"] },
-                { name: "Brazilië", code: "br", continent: "🌎 Zuid-Amerika", distractors: ["Argentinië", "Colombia", "Peru"] },
-                { name: "Canada", code: "ca", continent: "🌎 Noord-Amerika", distractors: ["Verenigde Staten", "Oostenrijk", "Denemarken"] }
-            ],
-            gemiddeld: [
-                { name: "Zweden", code: "se", continent: "🇪🇺 Europa", distractors: ["Finland", "Noorwegen", "Denemarken"] },
-                { name: "Griekenland", code: "gr", continent: "🇪🇺 Europa", distractors: ["Cyprus", "Finland", "Uruguay"] },
-                { name: "Turkije", code: "tr", continent: "🌍 Midden-Oosten", distractors: ["Tunesië", "Pakistan", "Algerije"] },
-                { name: "Zuid-Afrika", code: "za", continent: "🌍 Afrika", distractors: ["Zimbabwe", "Namibië", "Kenia"] },
-                { name: "Argentinië", code: "ar", continent: "🌎 Zuid-Amerika", distractors: ["Uruguay", "Guatemala", "Honduras"] },
-                { name: "Mexico", code: "mx", continent: "🌎 Noord-Amerika", distractors: ["Italië", "Hongarije", "Peru"] },
-                { name: "India", code: "in", continent: "🌏 Azië", distractors: ["Niger", "Ierland", "Sri Lanka"] },
-                { name: "Zwitserland", code: "ch", continent: "🇪🇺 Europa", distractors: ["Oostenrijk", "Denemarken", "Griekenland"] },
-                { name: "Egypte", code: "eg", continent: "🌍 Midden-Oosten", distractors: ["Syrië", "Jemen", "Irak"] },
-                { name: "Marokko", code: "ma", continent: "🌍 Afrika", distractors: ["Vietnam", "Tunesië", "Algerije"] }
-            ],
-            moeilijk: [
-                { name: "Tjaad", code: "td", continent: "🌍 Afrika", distractors: ["Roemenië", "Moldavië", "Andorra"] },
-                { name: "Roemenië", code: "ro", continent: "🇪🇺 Europa", distractors: ["Tjaad", "Moldavië", "België"] },
-                { name: "Indonesië", code: "id", continent: "🌏 Azië", distractors: ["Monaco", "Polen", "Singapore"] },
-                { name: "Monaco", code: "mc", continent: "🇪🇺 Europa", distractors: ["Indonesië", "Polen", "Oostenrijk"] },
-                { name: "Nieuw-Zeeland", code: "nz", continent: "Oceanie", distractors: ["Australië", "Tuvalu", "Fiji"] },
-                { name: "Australië", code: "au", continent: "Oceanie", distractors: ["Nieuw-Zeeland", "Verenigd Koninkrijk", "Samoa"] },
-                { name: "Slovenië", code: "si", continent: "🇪🇺 Europa", distractors: ["Slowakije", "Rusland", "Kroatië"] },
-                { name: "Slowakije", code: "sk", continent: "🇪🇺 Europa", distractors: ["Slovenië", "Tsjechië", "Rusland"] },
-                { name: "Mali", code: "ml", continent: "🌍 Afrika", distractors: ["Guinee", "Senegal", "Ghana"] },
-                { name: "Guinee", code: "gn", continent: "🌍 Afrika", distractors: ["Mali", "Kameroen", "Ghana"] }
-            ],
-            eu_special: [
-                { name: "Nederland", code: "nl", continent: "🇪🇺 Europa", distractors: ["België", "Luxemburg", "Frankrijk"] },
-                { name: "Frankrijk", code: "fr", continent: "🇪🇺 Europa", distractors: ["Italië", "Spanje", "België"] },
-                { name: "Duitsland", code: "de", continent: "🇪🇺 Europa", distractors: ["Oostenrijk", "Polen", "Tsjechië"] },
-                { name: "Spanje", code: "es", continent: "🇪🇺 Europa", distractors: ["Portugal", "Italië", "Griekenland"] },
-                { name: "Zweden", code: "se", continent: "🇪🇺 Europa", distractors: ["Finland", "Noorwegen", "Denemarken"] },
-                { name: "Italië", code: "it", continent: "🇪🇺 Europa", distractors: ["Griekenland", "Ierland", "Oostenrijk"] },
-                { name: "IJsland", code: "is", continent: "🇪🇺 Europa", distractors: ["Noorwegen", "Finland", "Denemarken"] },
-                { name: "Finland", code: "fi", continent: "🇪🇺 Europa", distractors: ["Zweden", "Estland", "IJsland"] },
-                { name: "Griekenland", code: "gr", continent: "🇪🇺 Europa", distractors: ["Cyprus", "Kroatië", "Italië"] },
-                { name: "Portugal", code: "pt", continent: "🇪🇺 Europa", distractors: ["Spanje", "Italië", "Frankrijk"] },
-                { name: "Zwitserland", code: "ch", continent: "🇪🇺 Europa", distractors: ["Oostenrijk", "België", "Denemarken"] }
-            ]
-        };
-
-        const koppenDatabase = [
-            {
-                code: "Af - Tropisch Regenwoudklimaat",
-                short: "Af",
-                temp: [26, 26, 27, 27, 27, 26, 26, 26, 27, 27, 26, 26],
-                precip: [280, 250, 310, 290, 220, 180, 160, 150, 180, 210, 240, 270],
-                desc: "Tropisch regenwoudklimaat (Af): Elke maand heeft een gemiddelde temperatuur boven 18°C en neerslag boven 60 mm (geen droog seizoen)."
-            },
-            {
-                code: "BWk - Koud Woestijnklimaat",
-                short: "BWk",
-                temp: [-5, -2, 5, 12, 19, 24, 27, 25, 19, 11, 3, -3],
-                precip: [10, 8, 12, 15, 18, 14, 10, 8, 6, 8, 9, 11],
-                desc: "Koud woestijnklimaat (BWk): Zeer droog het hele jaar door, met koude winters (gemiddelde jaartemperatuur onder 18°C)."
-            },
-            {
-                code: "Cfb - Gematigd Zeeklimaat",
-                short: "Cfb",
-                temp: [3, 4, 7, 10, 14, 17, 19, 19, 16, 12, 7, 4],
-                precip: [70, 55, 60, 45, 55, 65, 75, 80, 70, 80, 80, 75],
-                desc: "Gematigd zeeklimaat (Cfb): Zachte winters, koele zomers en neerslag gelijkmatig verdeeld over het hele jaar (o.a. Nederland)."
-            },
-            {
-                code: "Csa - Mediterraan Klimaat",
-                short: "Csa",
-                temp: [10, 11, 13, 16, 20, 24, 28, 28, 24, 20, 15, 11],
-                precip: [90, 80, 60, 40, 20, 5, 2, 8, 35, 75, 95, 100],
-                desc: "Mediterraan / Middellandse Zeeklimaat (Csa): Warme, zeer droge zomers en milde, natte winters."
-            },
-            {
-                code: "Dfc - Subarctisch Klimaat",
-                short: "Dfc",
-                temp: [-20, -17, -10, -1, 7, 14, 17, 15, 8, 0, -10, -17],
-                precip: [20, 18, 20, 25, 35, 55, 70, 65, 45, 35, 28, 22],
-                desc: "Subarctisch / Landklimaat (Dfc): Zeer koude, lange winters en korte, koele zomers met neerslag in de zomer."
-            },
-            {
-                code: "EF - Poolklimaat / Sneeuwklimaat",
-                short: "EF",
-                temp: [-35, -38, -32, -25, -15, -5, -2, -4, -12, -22, -30, -35],
-                precip: [8, 6, 5, 8, 10, 12, 15, 14, 10, 8, 7, 8],
-                desc: "Eeuwige sneeuw / Poolklimaat (EF): Gemiddelde temperatuur van de warmste maand komt nooit boven 0°C."
-            }
-        ];
-
-        /* ================= GAME STATE VARIABLES ================= */
-        let currentGameMode = ''; 
-        let globalXP = 0;
-        
-        // Flag Game State
-        let flagDifficulty = 'makkelijk';
-        let flagScore = 0;
-        let flagLives = 3;
-        let flagStreak = 0;
-        let currentFlagIndex = 0;
-        let flagDeck = [];
-
-        // Koppen Game State
-        let koppenMode = 'normaal';
-        let koppenScore = 0;
-        let koppenRound = 1;
-        let koppenCurrentItem = null;
-
-        function toggleInstructionsModal() {
-            playSoundEffect('click');
-            const modal = document.getElementById('instructions-modal');
-            if (modal) {
-                modal.classList.toggle('hidden');
-            }
-        }
-
-        function updateXPDisplay() {
-            document.getElementById('global-xp').textContent = globalXP;
-            
-            // Level berekening (100 XP per level)
-            const level = Math.floor(globalXP / 100) + 1;
-            const xpInCurrentLevel = globalXP % 100; // 0-99%
-
-            const levelEl = document.getElementById('player-level');
-            if (levelEl) levelEl.textContent = `Lvl ${level}`;
-
-            const progressBar = document.getElementById('xp-progress-bar');
-            if (progressBar) progressBar.style.width = `${xpInCurrentLevel}%`;
-
-            // Bepaal de titel op basis van level
-            let rank = "Novice";
-            if (level >= 15) rank = "Master 🌍";
-            else if (level >= 10) rank = "Expert 📜";
-            else if (level >= 5) rank = "Explorer 🧭";
-            else if (level >= 2) rank = "Scout 🌱";
-            
-            const rankEl = document.getElementById('player-rank-title');
-            if (rankEl) rankEl.textContent = rank;
-        }
 
         function showScreen(screenId) {
             playSoundEffect('click');
@@ -636,6 +711,7 @@
             });
             const target = document.getElementById(screenId);
             if (target) target.classList.remove('hidden');
+
             const navBtn = document.getElementById('nav-menu-btn');
             if (navBtn) {
                 if (screenId === 'menu-screen') navBtn.classList.add('hidden');
@@ -643,142 +719,140 @@
             }
         }
 
-        /* ================= FLAGGUESSR ENGINE ================= */
+        function updateXPDisplay() {
+            const level = Math.floor(globalXP / 100) + 1;
+            const xpInCurrentLevel = globalXP % 100;
+            
+            document.getElementById('player-level').textContent = `Lvl ${level}`;
+            document.getElementById('global-xp').textContent = globalXP;
+            document.getElementById('xp-progress-bar').style.width = `${xpInCurrentLevel}%`;
+
+            let rank = "Novice";
+            if (level >= 15) rank = "Master";
+            else if (level >= 10) rank = "Expert";
+            else if (level >= 5) rank = "Explorer";
+            else if (level >= 2) rank = "Scout";
+            
+            document.getElementById('player-rank-title').textContent = rank;
+        }
+
         function startFlagGame(difficulty) {
+            playSoundEffect('click');
             currentGameMode = 'flag';
             flagDifficulty = difficulty;
             flagScore = 0;
             flagStreak = 0;
-            flagLives = (difficulty === 'oneindig') ? 1 : 3;
+            flagLives = 3;
+            currentFlagIndex = 0;
+
+            const pool = flagDatabase[difficulty] || flagDatabase.makkelijk;
+            flagDeck = shuffleArray(pool);
+
+            document.getElementById('flag-mode-badge').textContent = difficulty.toUpperCase();
             document.getElementById('flag-score').textContent = '0';
             document.getElementById('flag-streak').textContent = '0';
-            document.getElementById('flag-mode-badge').textContent = difficulty.replace('_', ' ').toUpperCase();
-            
-            // Prepare Deck
-            let pool = [];
-            if (difficulty === 'oneindig') {
-                pool = [...flagDatabase.makkelijk, ...flagDatabase.gemiddeld, ...flagDatabase.moeilijk, ...flagDatabase.eu_special];
-            } else if (difficulty === 'eu_special') {
-                pool = [...flagDatabase.eu_special];
-            } else {
-                pool = [...(flagDatabase[difficulty] || flagDatabase.makkelijk)];
-            }
-            flagDeck = shuffleArray(pool);
-            currentFlagIndex = 0;
-            renderLives();
+            updateFlagLivesDisplay();
+
             showScreen('flag-screen');
             loadNextFlagQuestion();
+            updateTasksProgress('flag_played', 1);
         }
 
-        function renderLives() {
+        function updateFlagLivesDisplay() {
             const container = document.getElementById('flag-lives-container');
-            if (flagDifficulty === 'oneindig') {
-                container.innerHTML = '<span class="text-xs text-amber-400 font-black">⚡ 1 LIFE SURVIVAL</span>';
-                return;
-            }
-            let hearts = '';
+            container.innerHTML = '';
             for (let i = 0; i < 3; i++) {
-                if (i < flagLives) hearts += '<i class="fa-solid fa-heart animate-pulse"></i>';
-                else hearts += '<i class="fa-solid fa-heart text-slate-700"></i>';
+                const icon = document.createElement('i');
+                icon.className = i < flagLives ? 'fa-solid fa-heart' : 'fa-regular fa-heart opacity-30';
+                container.appendChild(icon);
             }
-            container.innerHTML = hearts;
         }
 
         function loadNextFlagQuestion() {
-            const feedback = document.getElementById('flag-feedback');
-            feedback.classList.add('hidden');
             if (currentFlagIndex >= flagDeck.length) {
-                if (flagDifficulty === 'oneindig') {
-                    // Reshuffle for endless
-                    flagDeck = shuffleArray([...flagDatabase.makkelijk, ...flagDatabase.gemiddeld, ...flagDatabase.moeilijk, ...flagDatabase.eu_special]);
-                    currentFlagIndex = 0;
-                } else {
-                    finishGameRound();
-                    return;
-                }
+                flagDeck = shuffleArray(flagDeck);
+                currentFlagIndex = 0;
             }
+
             const current = flagDeck[currentFlagIndex];
-            
-            // Set flag image
             const flagImg = document.getElementById('flag-image');
             flagImg.src = `https://flagcdn.com/w320/${current.code}.png`;
-            flagImg.onerror = function() {
-                this.src = `https://placehold.co/320x213/0f172a/38bdf8?text=${current.name}`;
-            };
             document.getElementById('flag-continent-badge').textContent = current.continent;
-            
-            // Generate choices (1 correct + 3 options)
-            let choices = [current.name];
-            let distractors = shuffleArray(current.distractors || ["België", "Duitsland", "Spanje"]).slice(0, 3);
-            choices = shuffleArray([...choices, ...distractors]);
+
+            const options = shuffleArray([current.name, ...current.distractors]);
             const grid = document.getElementById('flag-options-grid');
             grid.innerHTML = '';
-            choices.forEach(option => {
+
+            options.forEach(option => {
                 const btn = document.createElement('button');
-                btn.className = "w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 font-bold text-sm text-slate-200 hover:text-white transition shadow-md active:scale-95";
+                btn.className = "w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700 text-white font-bold text-xs sm:text-sm transition shadow-md active:scale-95";
                 btn.textContent = option;
                 btn.onclick = () => checkFlagAnswer(option, current.name, btn);
                 grid.appendChild(btn);
             });
+
+            document.getElementById('flag-feedback').classList.add('hidden');
         }
 
         function checkFlagAnswer(selected, correct, btnElement) {
             const grid = document.getElementById('flag-options-grid');
             const buttons = grid.querySelectorAll('button');
             buttons.forEach(b => b.disabled = true);
+
             const feedback = document.getElementById('flag-feedback');
+            feedback.classList.remove('hidden');
+
             if (selected === correct) {
                 playSoundEffect('correct');
-                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-sm border border-emerald-400 shadow-neon-green";
-                
-                flagStreak++;
+                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-xs sm:text-sm border border-emerald-400 shadow-neon-green";
                 flagScore += 100 + (flagStreak * 10);
-                globalXP += 25;
-                document.getElementById('flag-score').textContent = flagScore;
-                document.getElementById('flag-streak').textContent = flagStreak;
+                flagStreak++;
+                globalXP += 15;
                 updateXPDisplay();
-                feedback.className = "p-4 rounded-2xl text-center font-black text-sm bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg block animate-bounce";
-                feedback.textContent = `🎉 Goed gedaan! (+${100 + (flagStreak * 10)} pt)`;
-                setTimeout(() => {
-                    currentFlagIndex++;
-                    loadNextFlagQuestion();
-                }, 1200);
+                updateTasksProgress('streak', flagStreak);
+
+                feedback.className = "p-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-extrabold text-xs text-center";
+                feedback.textContent = "✓ Uitstekend! +100 Score";
             } else {
                 playSoundEffect('wrong');
-                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-rose-600 text-white font-black text-sm border border-rose-400 shake-anim";
-                
-                // Highlight correct button
+                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-rose-600 text-white font-black text-xs sm:text-sm border border-rose-400 shake-anim";
                 buttons.forEach(b => {
                     if (b.textContent === correct) {
-                        b.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-sm border border-emerald-400";
+                        b.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-xs sm:text-sm border border-emerald-400";
                     }
                 });
                 flagStreak = 0;
-                document.getElementById('flag-streak').textContent = '0';
                 flagLives--;
-                renderLives();
-                feedback.className = "p-4 rounded-2xl text-center font-black text-sm bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-lg block";
-                feedback.textContent = `❌ Helaas! Het juiste antwoord was ${correct}.`;
-                if (flagLives <= 0) {
-                    setTimeout(() => finishGameRound(), 1600);
-                } else {
-                    setTimeout(() => {
-                        currentFlagIndex++;
-                        loadNextFlagQuestion();
-                    }, 1800);
-                }
+                updateFlagLivesDisplay();
+
+                feedback.className = "p-3 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 font-extrabold text-xs text-center";
+                feedback.textContent = `✕ Helaas! Het juiste antwoord was: ${correct}`;
             }
+
+            document.getElementById('flag-score').textContent = flagScore;
+            document.getElementById('flag-streak').textContent = flagStreak;
+
+            setTimeout(() => {
+                if (flagLives <= 0) {
+                    finishGameRound();
+                } else {
+                    currentFlagIndex++;
+                    loadNextFlagQuestion();
+                }
+            }, 1400);
         }
 
-        /* ================= KÖPPENGUESSR ENGINE & CHART CANVAS ================= */
         function startKoppenGame(mode) {
+            playSoundEffect('click');
             currentGameMode = 'koppen';
             koppenMode = mode;
             koppenScore = 0;
             koppenRound = 1;
+
+            document.getElementById('koppen-mode-badge').textContent = mode.toUpperCase();
             document.getElementById('koppen-score').textContent = '0';
             document.getElementById('koppen-round-num').textContent = '1';
-            document.getElementById('koppen-mode-badge').textContent = mode.toUpperCase();
+
             showScreen('koppen-screen');
             loadNextKoppenQuestion();
         }
@@ -786,48 +860,48 @@
         function loadNextKoppenQuestion() {
             document.getElementById('koppen-explanation').classList.add('hidden');
             document.getElementById('koppen-round-num').textContent = koppenRound;
-            // Pick random Köppen item
-            const item = koppenDatabase[Math.floor(Math.random() * koppenDatabase.length)];
-            koppenCurrentItem = item;
-            // Render Chart
-            renderClimateChart(item.temp, item.precip);
-            // Options
-            let choices = [item.code];
-            let otherItems = koppenDatabase.filter(k => k.code !== item.code);
-            let distractors = shuffleArray(otherItems).slice(0, 3).map(k => k.code);
-            choices = shuffleArray([...choices, ...distractors]);
+            document.getElementById('koppen-score').textContent = koppenScore;
+
+            const randomItem = koppenDatabase[Math.floor(Math.random() * koppenDatabase.length)];
+            koppenCurrentItem = randomItem;
+
+            renderClimateChart(randomItem.temp, randomItem.precip);
+
+            const options = shuffleArray(koppenDatabase.map(k => k.code));
             const grid = document.getElementById('koppen-options-grid');
             grid.innerHTML = '';
-            choices.forEach(option => {
+
+            options.forEach(code => {
                 const btn = document.createElement('button');
-                btn.className = "w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 font-bold text-xs sm:text-sm text-slate-200 hover:text-white transition shadow-md active:scale-95 text-left";
-                btn.textContent = option;
-                btn.onclick = () => checkKoppenAnswer(option, item, btn);
+                btn.className = "w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700 text-white font-bold text-xs sm:text-sm transition shadow-md text-left truncate active:scale-95";
+                btn.textContent = code;
+                btn.onclick = () => checkKoppenAnswer(code, randomItem, btn);
                 grid.appendChild(btn);
             });
         }
 
-        function renderClimateChart(temps, precips) {
+        function renderClimateChart(temps, precip) {
             const canvas = document.getElementById('climate-chart');
             const ctx = canvas.getContext('2d');
-            // Responsive high-DPI scaling
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * 2;
-            canvas.height = 230 * 2;
-            ctx.scale(2, 2);
-            const width = rect.width;
-            const height = 230;
-            ctx.clearRect(0, 0, width, height);
-            const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+            
+            canvas.width = canvas.parentElement.clientWidth - 32;
+            canvas.height = 220;
+
+            const width = canvas.width;
+            const height = canvas.height;
             const paddingLeft = 35;
             const paddingRight = 35;
             const paddingTop = 25;
             const paddingBottom = 30;
+
             const chartW = width - paddingLeft - paddingRight;
             const chartH = height - paddingTop - paddingBottom;
-            
-            // Draw grid lines
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Gridlijnen
+            ctx.strokeStyle = '#1e293b';
             ctx.lineWidth = 1;
             for (let i = 0; i <= 4; i++) {
                 const y = paddingTop + (chartH / 4) * i;
@@ -837,20 +911,22 @@
                 ctx.stroke();
             }
 
-            // Draw Bars (Precipitation - mm: 0 to 350)
+            // Neerslag staven
             const maxP = 350;
-            const barWidth = (chartW / 12) * 0.5;
-            precips.forEach((p, i) => {
-                const x = paddingLeft + (chartW / 12) * i + (chartW / 24) - (barWidth / 2);
+            const barWidth = (chartW / 12) * 0.55;
+            precip.forEach((p, i) => {
+                const x = paddingLeft + (chartW / 12) * i + (chartW / 24) - barWidth / 2;
                 const barH = (p / maxP) * chartH;
                 const y = paddingTop + chartH - barH;
-                ctx.fillStyle = 'rgba(56, 189, 248, 0.75)';
-                ctx.beginPath();
-                ctx.roundRect(x, y, barWidth, barH, [3, 3, 0, 0]);
-                ctx.fill();
+
+                const grad = ctx.createLinearGradient(0, y, 0, y + barH);
+                grad.addColorStop(0, '#38bdf8');
+                grad.addColorStop(1, '#0284c7');
+                ctx.fillStyle = grad;
+                ctx.fillRect(x, y, barWidth, barH);
             });
 
-            // Draw Line (Temperature - °C: -40 to +40)
+            // Temperatuur Lijn
             const minT = -40;
             const maxT = 40;
             ctx.beginPath();
@@ -865,7 +941,6 @@
             });
             ctx.stroke();
 
-            // Draw points
             temps.forEach((t, i) => {
                 const x = paddingLeft + (chartW / 12) * i + (chartW / 24);
                 const normT = (t - minT) / (maxT - minT);
@@ -876,7 +951,6 @@
                 ctx.fill();
             });
 
-            // Draw X-Axis Labels (Months)
             ctx.fillStyle = '#94a3b8';
             ctx.font = 'bold 10px Plus Jakarta Sans, sans-serif';
             ctx.textAlign = 'center';
@@ -893,13 +967,15 @@
             const expBox = document.getElementById('koppen-explanation');
             const resTitle = document.getElementById('koppen-result-title');
             const resText = document.getElementById('koppen-result-text');
+
             if (selected === item.code) {
                 playSoundEffect('correct');
                 btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-xs sm:text-sm border border-emerald-400 shadow-neon-green";
-                
                 koppenScore += 150;
                 globalXP += 35;
                 updateXPDisplay();
+                updateTasksProgress('koppen_solved', 1);
+
                 resTitle.className = "font-extrabold text-sm flex items-center gap-2 text-emerald-400";
                 resTitle.innerHTML = `<i class="fa-solid fa-circle-check"></i> Uitstekend Geanalyseerd!`;
             } else {
@@ -926,50 +1002,7 @@
             }
         }
 
-        /* ================= GAME OVER / RESULTS ================= */
-        function finishGameRound() {
-            playSoundEffect('fanfare');
-            showScreen('results-screen');
-            const finalScoreEl = document.getElementById('results-final-score');
-            const subtitleEl = document.getElementById('results-subtitle');
-            let score = (currentGameMode === 'flag') ? flagScore : koppenScore;
-            finalScoreEl.textContent = `${score} pt`;
-            if (score > 800) {
-                subtitleEl.textContent = "🏆 Masterclass! Je bent een ware geografie-expert!";
-            } else if (score > 400) {
-                subtitleEl.textContent = "🌟 Goed gedaan! Je geografische kennis is uitstekend.";
-            } else {
-                subtitleEl.textContent = "👍 Blijf oefenen en ontdek meer van de wereld!";
-            }
-        }
-
-        function replayCurrentGame() {
-            if (currentGameMode === 'flag') {
-                startFlagGame(flagDifficulty);
-            } else {
-                startKoppenGame(koppenMode);
-            }
-        }
-
-        /* Helper: Array Shuffler */
-        function shuffleArray(arr) {
-            const array = [...arr];
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-    </script>
-</body>
-</html>
-        /* TASKBAR & LEVEL MODAL LOGIC */
-        let taskState = {
-            task1: { count: 0, target: 1, claimed: false },
-            task2: { count: 0, target: 3, claimed: false },
-            task3: { count: 0, target: 2, claimed: false }
-        };
-
+        /* ================= LEVEL MODAL & TASKS LOGIC ================= */
         function openLevelModal() {
             playSoundEffect('click');
             const level = Math.floor(globalXP / 100) + 1;
@@ -1004,7 +1037,6 @@
         }
 
         function renderTasks() {
-            // Task 1
             const t1 = taskState.task1;
             document.getElementById('task1-bar').style.width = `${(t1.count / t1.target) * 100}%`;
             document.getElementById('task1-status').textContent = t1.claimed ? 'Voltooid! ✓' : `${t1.count} / ${t1.target} Voltooid`;
@@ -1012,7 +1044,6 @@
                 document.getElementById('task1-claim').classList.remove('hidden');
             }
 
-            // Task 2
             const t2 = taskState.task2;
             document.getElementById('task2-bar').style.width = `${Math.min(100, (t2.count / t2.target) * 100)}%`;
             document.getElementById('task2-status').textContent = t2.claimed ? 'Voltooid! ✓' : `${t2.count} / ${t2.target} Streak`;
@@ -1020,7 +1051,6 @@
                 document.getElementById('task2-claim').classList.remove('hidden');
             }
 
-            // Task 3
             const t3 = taskState.task3;
             document.getElementById('task3-bar').style.width = `${(t3.count / t3.target) * 100}%`;
             document.getElementById('task3-status').textContent = t3.claimed ? 'Voltooid! ✓' : `${t3.count} / ${t3.target} Voltooid`;
@@ -1038,23 +1068,38 @@
             renderTasks();
         }
 
-        /* Hook updates into game events */
-        const originalCheckFlagAnswer = checkFlagAnswer;
-        checkFlagAnswer = function(selected, correct, btnElement) {
-            updateTasksProgress('flag_played', 1);
-            if (selected === correct) {
-                updateTasksProgress('streak', flagStreak + 1);
+        function finishGameRound() {
+            playSoundEffect('fanfare');
+            showScreen('results-screen');
+            const finalScoreEl = document.getElementById('results-final-score');
+            const subtitleEl = document.getElementById('results-subtitle');
+            let score = (currentGameMode === 'flag') ? flagScore : koppenScore;
+            finalScoreEl.textContent = `${score} pt`;
+            if (score > 800) {
+                subtitleEl.textContent = "🏆 Masterclass! Je bent een ware geografie-expert!";
+            } else if (score > 400) {
+                subtitleEl.textContent = "🌟 Goed gedaan! Je geografische kennis is uitstekend.";
+            } else {
+                subtitleEl.textContent = "👍 Blijf oefenen en ontdek meer van de wereld!";
             }
-            originalCheckFlagAnswer(selected, correct, btnElement);
-        };
+        }
 
-        const originalCheckKoppenAnswer = checkKoppenAnswer;
-        checkKoppenAnswer = function(selected, item, btnElement) {
-            if (selected === item.code) {
-                updateTasksProgress('koppen_solved', 1);
+        function replayCurrentGame() {
+            if (currentGameMode === 'flag') {
+                startFlagGame(flagDifficulty);
+            } else {
+                startKoppenGame(koppenMode);
             }
-            originalCheckKoppenAnswer(selected, item, btnElement);
-        };
+        }
+
+        function shuffleArray(arr) {
+            const array = [...arr];
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
     </script>
 </body>
 </html>
