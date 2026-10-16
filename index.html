@@ -99,17 +99,28 @@
     <!-- Background Particle Canvas -->
     <canvas id="bg-particles" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
     
+    <!-- ZWEVENDE VRAAGTEKEN KNOP (LINKS MIDDEN) -->
+    <button onclick="toggleInstructionsModal()" title="Gebruiksaanwijzing" class="fixed left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black flex items-center justify-center transition-all shadow-neon-purple hover:scale-110 active:scale-95 group">
+        <i class="fa-solid fa-circle-question text-2xl group-hover:rotate-12 transition-transform"></i>
+        <!-- Tooltip -->
+        <span class="absolute left-16 bg-slate-900 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg">
+            Gebruiksaanwijzing
+        </span>
+    </button>
+
     <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 transition-all">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between relative z-10">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between relative z-10">
             <!-- Logo & Brand -->
-            <div class="flex items-center gap-3 cursor-pointer group" onclick="showScreen('menu-screen')">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
-                    <i class="fa-solid fa-earth-americas text-xl animate-pulse-glow"></i>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-black text-2xl tracking-tight gradient-text-cyber">AKGuessr</span>
-                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 uppercase tracking-widest shadow-sm">PRO 1000X</span>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 cursor-pointer group" onclick="showScreen('menu-screen')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-earth-americas text-xl animate-pulse-glow"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-2xl tracking-tight gradient-text-cyber">AKGuessr</span>
+                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 uppercase tracking-widest shadow-sm">PRO 1000X</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -124,20 +135,26 @@
                     <i class="fa-solid fa-house"></i>
                     <span>Menu</span>
                 </button>
-                <!-- Player Rank Badge & XP Bar -->
-                <div class="glass-panel px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-2.5 shadow-md">
-                    <i class="fa-solid fa-crown text-amber-400"></i>
-                    <div class="flex flex-col">
-                        <span id="player-rank-title" class="text-[10px] text-amber-300 uppercase tracking-wider font-extrabold">Novice Explorer</span>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-white">XP: <strong id="global-xp" class="text-emerald-400">0</strong></span>
+                
+                <!-- XP & Level Systeem (KLIKBAAR gemaakt voor Level Status Modal) -->
+                <div onclick="openLevelModal()" class="glass-panel px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-3 shadow-md border border-slate-700/60 cursor-pointer hover:border-amber-400/50 transition-all group">
+                    <div class="flex items-center justify-center px-2 py-1 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 font-black text-xs shadow-sm group-hover:scale-105 transition-transform">
+                        <span id="player-level">Lvl 1</span>
+                    </div>
+                    <div class="flex flex-col gap-1 min-w-[100px]">
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span id="player-rank-title" class="text-amber-300 uppercase tracking-wider font-extrabold">Novice</span>
+                            <span class="text-slate-300"><strong id="global-xp" class="text-emerald-400">0</strong> XP</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden border border-slate-700/50">
+                            <div id="xp-progress-bar" class="bg-gradient-to-r from-emerald-400 to-cyan-400 h-full w-0 transition-all duration-300"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </header>
-    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center relative z-10">
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center relative z-10">
         <!-- ================= MAIN MENU DASHBOARD ================= -->
         <div id="menu-screen" class="space-y-8 py-4">
             <!-- Hero Title -->
@@ -149,13 +166,15 @@
                     Word De Meester Van De <span class="gradient-text-cyber">Aarde</span>
                 </h1>
                 <p class="text-slate-400 text-sm sm:text-base font-medium max-w-lg mx-auto">
-                    Kies je categorie, test je kennis van vlaggen of klimaten en klim naar de top van de ranglijst!
+                    Kies je categorie, voer dagelijkse opdrachten uit en klim snel door de levels heen!
                 </p>
             </div>
-            <!-- Two Main Category Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+
+            <!-- GRID INCLUSIEF RECHTS DE DAGELIJKSE TAKEN TASKBAR -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-start">
+                
                 <!-- LEFT CARD: FLAGGUESSR -->
-                <div class="glass-panel glass-panel-hover rounded-3xl p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-2xl relative overflow-hidden group transition-all duration-300">
+                <div class="glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-2xl relative overflow-hidden group transition-all duration-300">
                     <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/20 transition-all"></div>
                     
                     <div class="space-y-4 relative z-10">
@@ -168,36 +187,37 @@
                             </span>
                         </div>
                         <div>
-                            <h2 class="text-2xl sm:text-3xl font-black text-white group-hover:text-blue-300 transition-colors">FlagGuessr</h2>
-                            <p class="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">Herken de landsvlaggen snel en ontwijk de slimme afleiders en doppelgängers!</p>
+                            <h2 class="text-2xl font-black text-white group-hover:text-blue-300 transition-colors">FlagGuessr</h2>
+                            <p class="text-slate-400 text-xs mt-1 leading-relaxed">Herken de landsvlaggen snel en ontwijk de slimme afleiders en doppelgängers!</p>
                         </div>
                     </div>
                     <!-- Level Selector Buttons -->
                     <div class="space-y-2.5 pt-2 relative z-10">
-                        <button onclick="startFlagGame('makkelijk')" class="w-full py-3 px-4 rounded-2xl bg-slate-800/90 hover:bg-emerald-600/20 border border-slate-700/80 hover:border-emerald-500/60 text-left font-bold text-sm transition flex items-center justify-between group/btn shadow-md">
-                            <span class="flex items-center gap-2.5">🌱 <span class="text-slate-200 group-hover/btn:text-white">Makkelijk</span></span>
-                            <span class="text-xs text-slate-500 font-semibold group-hover/btn:text-emerald-400 transition">Basis Vlaggen →</span>
+                        <button onclick="startFlagGame('makkelijk')" class="w-full py-2.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-emerald-600/20 border border-slate-700/80 hover:border-emerald-500/60 text-left font-bold text-xs transition flex items-center justify-between group/btn shadow-md">
+                            <span class="flex items-center gap-2">🌱 <span class="text-slate-200 group-hover/btn:text-white">Makkelijk</span></span>
+                            <span class="text-[10px] text-slate-500 font-semibold group-hover/btn:text-emerald-400 transition">Basis →</span>
                         </button>
-                        <button onclick="startFlagGame('gemiddeld')" class="w-full py-3 px-4 rounded-2xl bg-slate-800/90 hover:bg-amber-600/20 border border-slate-700/80 hover:border-amber-500/60 text-left font-bold text-sm transition flex items-center justify-between group/btn shadow-md">
-                            <span class="flex items-center gap-2.5">⚡ <span class="text-slate-200 group-hover/btn:text-white">Gemiddeld</span></span>
-                            <span class="text-xs text-slate-500 font-semibold group-hover/btn:text-amber-400 transition">Wereldwijd →</span>
+                        <button onclick="startFlagGame('gemiddeld')" class="w-full py-2.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-amber-600/20 border border-slate-700/80 hover:border-amber-500/60 text-left font-bold text-xs transition flex items-center justify-between group/btn shadow-md">
+                            <span class="flex items-center gap-2">⚡ <span class="text-slate-200 group-hover/btn:text-white">Gemiddeld</span></span>
+                            <span class="text-[10px] text-slate-500 font-semibold group-hover/btn:text-amber-400 transition">Wereld →</span>
                         </button>
-                        <button onclick="startFlagGame('moeilijk')" class="w-full py-3 px-4 rounded-2xl bg-slate-800/90 hover:bg-rose-600/20 border border-slate-700/80 hover:border-rose-500/60 text-left font-bold text-sm transition flex items-center justify-between group/btn shadow-md">
-                            <span class="flex items-center gap-2.5">🔥 <span class="text-slate-200 group-hover/btn:text-white">Moeilijk</span></span>
-                            <span class="text-xs text-slate-500 font-semibold group-hover/btn:text-rose-400 transition">Strikvragen →</span>
+                        <button onclick="startFlagGame('moeilijk')" class="w-full py-2.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-rose-600/20 border border-slate-700/80 hover:border-rose-500/60 text-left font-bold text-xs transition flex items-center justify-between group/btn shadow-md">
+                            <span class="flex items-center gap-2">🔥 <span class="text-slate-200 group-hover/btn:text-white">Moeilijk</span></span>
+                            <span class="text-[10px] text-slate-500 font-semibold group-hover/btn:text-rose-400 transition">Strikvragen →</span>
                         </button>
-                        <button onclick="startFlagGame('eu_special')" class="w-full py-3 px-4 rounded-2xl bg-indigo-900/40 hover:bg-indigo-600/30 border border-indigo-500/40 hover:border-indigo-400 text-left font-bold text-sm transition flex items-center justify-between group/btn shadow-md">
-                            <span class="flex items-center gap-2.5">🇪🇺 <span class="text-indigo-200 group-hover/btn:text-white">EU Special</span></span>
-                            <span class="text-xs text-indigo-400 font-semibold group-hover/btn:text-indigo-300 transition">Alleen Europa →</span>
+                        <button onclick="startFlagGame('eu_special')" class="w-full py-2.5 px-4 rounded-2xl bg-indigo-900/40 hover:bg-indigo-600/30 border border-indigo-500/40 hover:border-indigo-400 text-left font-bold text-xs transition flex items-center justify-between group/btn shadow-md">
+                            <span class="flex items-center gap-2">🇪🇺 <span class="text-indigo-200 group-hover/btn:text-white">EU Special</span></span>
+                            <span class="text-[10px] text-indigo-400 font-semibold group-hover/btn:text-indigo-300 transition">Europa →</span>
                         </button>
-                        <button onclick="startFlagGame('oneindig')" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black text-sm transition shadow-neon-blue flex items-center justify-between group/infinity">
-                            <span class="flex items-center gap-2.5">♾️ <span>Oneindig Mode</span></span>
+                        <button onclick="startFlagGame('oneindig')" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black text-xs transition shadow-neon-blue flex items-center justify-between group/infinity">
+                            <span class="flex items-center gap-2">♾️ <span>Oneindig Mode</span></span>
                             <i class="fa-solid fa-bolt text-amber-300 group-hover/infinity:scale-125 transition-transform"></i>
                         </button>
                     </div>
                 </div>
-                <!-- RIGHT CARD: KÖPPENGUESSR -->
-                <div class="glass-panel glass-panel-hover rounded-3xl p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-2xl relative overflow-hidden group transition-all duration-300">
+
+                <!-- MIDDLE CARD: KÖPPENGUESSR -->
+                <div class="glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-2xl relative overflow-hidden group transition-all duration-300">
                     <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/20 transition-all"></div>
                     <div class="space-y-4 relative z-10">
                         <div class="flex items-center justify-between">
@@ -209,135 +229,160 @@
                             </span>
                         </div>
                         <div>
-                            <h2 class="text-2xl sm:text-3xl font-black text-white group-hover:text-emerald-300 transition-colors">KöppenGuessr</h2>
-                            <p class="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">Analyseer klimaatdiagrammen (temperatuur & neerslag) en kraak de Köppen-codes!</p>
+                            <h2 class="text-2xl font-black text-white group-hover:text-emerald-300 transition-colors">KöppenGuessr</h2>
+                            <p class="text-slate-400 text-xs mt-1 leading-relaxed">Analyseer klimaatdiagrammen (temperatuur & neerslag) en kraak de Köppen-codes!</p>
                         </div>
                     </div>
                     <!-- Category Selector Buttons -->
                     <div class="space-y-2.5 pt-2 relative z-10">
-                        <button onclick="startKoppenGame('normaal')" class="w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-emerald-600/20 border border-slate-700/80 hover:border-emerald-500/60 text-left font-bold text-sm transition flex items-center justify-between group/btn shadow-md">
-                            <span class="flex items-center gap-2.5">🎯 <span class="text-slate-200 group-hover/btn:text-white">Normaal (10 Vragen)</span></span>
-                            <span class="text-xs text-slate-500 font-semibold group-hover/btn:text-emerald-400 transition">Start Ronde →</span>
+                        <button onclick="startKoppenGame('normaal')" class="w-full py-3 px-4 rounded-2xl bg-slate-800/90 hover:bg-emerald-600/20 border border-slate-700/80 hover:border-emerald-500/60 text-left font-bold text-xs transition flex items-center justify-between group/btn shadow-md">
+                            <span class="flex items-center gap-2">🎯 <span class="text-slate-200 group-hover/btn:text-white">Normaal (10 Vragen)</span></span>
+                            <span class="text-[10px] text-slate-500 font-semibold group-hover/btn:text-emerald-400 transition">Start →</span>
                         </button>
-                        <button onclick="startKoppenGame('oneindig')" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black text-sm transition shadow-neon-green flex items-center justify-between group/infinity">
-                            <span class="flex items-center gap-2.5">♾️ <span>Oneindig Mode</span></span>
+                        <button onclick="startKoppenGame('oneindig')" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black text-xs transition shadow-neon-green flex items-center justify-between group/infinity">
+                            <span class="flex items-center gap-2">♾️ <span>Oneindig Mode</span></span>
                             <i class="fa-solid fa-infinity text-emerald-200 group-hover/infinity:rotate-180 transition-transform duration-500"></i>
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
-        <!-- ================= FLAGGUESSR GAME SCREEN ================= -->
-        <div id="flag-screen" class="hidden space-y-6 max-w-2xl mx-auto w-full">
-            <!-- Scoreboard Top Bar -->
-            <div class="glass-panel p-4 rounded-2xl flex items-center justify-between shadow-xl">
-                <div class="flex items-center gap-2">
-                    <span id="flag-mode-badge" class="text-xs font-black px-3 py-1 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase tracking-wider">
-                        Makkelijk
-                    </span>
-                    <span id="flag-continent-badge" class="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
-                        🌍 Wereld
-                    </span>
-                </div>
-                <div class="flex items-center gap-5 text-sm font-extrabold">
-                    <div class="text-slate-400">
-                        Score: <span id="flag-score" class="text-emerald-400 text-base">0</span>
-                    </div>
-                    <div class="text-slate-400">
-                        Streak: <span id="flag-streak" class="text-amber-400 text-base">0</span> 🔥
-                    </div>
-                    <div id="flag-lives-container" class="flex gap-1 text-rose-500 text-lg">
-                        ❤️❤❤️
-                    </div>
-                </div>
-            </div>
-            <!-- Flag Visual Card -->
-            <div class="glass-panel p-6 sm:p-8 rounded-3xl text-center space-y-6 shadow-2xl relative overflow-hidden">
-                <div class="relative inline-block rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-800 max-w-[280px] sm:max-w-[340px] w-full aspect-[3/2] bg-slate-950 group">
-                    <img id="flag-image" src="" alt="Vlag" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
-                    <div class="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl pointer-events-none"></div>
-                </div>
-                <!-- Multiple Choice Grid -->
-                <div id="flag-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    <!-- Dynamic option buttons injected via JS -->
-                </div>
-            </div>
-            <!-- Animated Feedback Banner -->
-            <div id="flag-feedback" class="hidden p-4 rounded-2xl text-center font-black text-sm transition-all shadow-lg"></div>
-        </div>
-        <!-- ================= KÖPPENGUESSR GAME SCREEN ================= -->
-        <div id="koppen-screen" class="hidden space-y-6 max-w-3xl mx-auto w-full">
-            <!-- Scoreboard Top Bar -->
-            <div class="glass-panel p-4 rounded-2xl flex items-center justify-between shadow-xl">
-                <div class="flex items-center gap-2">
-                    <span id="koppen-mode-badge" class="text-xs font-black px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase tracking-wider">
-                        Normaal
-                    </span>
-                </div>
-                <div class="flex items-center gap-5 text-sm font-extrabold">
-                    <div class="text-slate-400">
-                        Vraag: <span id="koppen-round-num" class="text-white text-base">1</span>/10
-                    </div>
-                </div>
-            </div>
-            <!-- Climate Chart Card -->
-            <div class="glass-panel p-5 sm:p-7 rounded-3xl space-y-5 shadow-2xl">
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
-                        <h3 class="text-sm font-black text-slate-200">Klimaatdiagram (Maandgemiddelden)</h3>
-                    </div>
-                    <div class="flex items-center gap-4 text-xs font-bold">
-                        <span class="flex items-center gap-1.5 text-rose-400">
-                            <span class="w-3 h-1 bg-rose-500 rounded-full inline-block shadow-sm"></span> Temp (°C)
-                        </span>
-                        <span class="flex items-center gap-1.5 text-sky-400">
-                            <span class="w-3 h-3 bg-sky-500 rounded inline-block shadow-sm"></span> Neerslag (mm)
+
+                <!-- RIGHT TASKBAR: DAGELIJKSE TAKEN / DAILY QUESTS -->
+                <div class="glass-panel rounded-3xl p-6 space-y-4 shadow-2xl border border-amber-500/20 relative overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-sm font-bold">
+                                📅
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-sm text-white">Dagelijkse Taken</h3>
+                                <p class="text-[10px] text-slate-400">Resets over 18u</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 uppercase">
+                            Bonus XP
                         </span>
                     </div>
+
+                    <!-- Tasks List -->
+                    <div class="space-y-3" id="daily-tasks-list">
+                        <!-- Task 1 -->
+                        <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+                            <div class="flex justify-between items-start text-xs font-bold">
+                                <span class="text-slate-200">Speel 1 ronde FlagGuessr</span>
+                                <span class="text-amber-400 font-extrabold">+50 XP</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                <div id="task1-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[10px] text-slate-400">
+                                <span id="task1-status">0 / 1 Voltooid</span>
+                                <button id="task1-claim" onclick="claimTaskReward(1, 50)" class="hidden px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] transition">
+                                    Claim!
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Task 2 -->
+                        <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+                            <div class="flex justify-between items-start text-xs font-bold">
+                                <span class="text-slate-200">Behaal een streak van 3</span>
+                                <span class="text-amber-400 font-extrabold">+75 XP</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                <div id="task2-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[10px] text-slate-400">
+                                <span id="task2-status">0 / 3 Streak</span>
+                                <button id="task2-claim" onclick="claimTaskReward(2, 75)" class="hidden px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] transition">
+                                    Claim!
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Task 3 -->
+                        <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+                            <div class="flex justify-between items-start text-xs font-bold">
+                                <span class="text-slate-200">Los 2 Köppen-vragen op</span>
+                                <span class="text-amber-400 font-extrabold">+100 XP</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                <div id="task3-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[10px] text-slate-400">
+                                <span id="task3-status">0 / 2 Voltooid</span>
+                                <button id="task3-claim" onclick="claimTaskReward(3, 100)" class="hidden px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] transition">
+                                    Claim!
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <!-- Canvas Chart Container -->
-                <div class="w-full bg-slate-950/90 rounded-2xl p-3 border border-slate-800/80 shadow-inner">
-                    <canvas id="climate-chart" height="230" class="w-full"></canvas>
-                </div>
-                <!-- Multiple Choice Grid -->
-                <div id="koppen-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <!-- Dynamic buttons injected via JS -->
-                </div>
-                <!-- Educational Explanation Box -->
-                <div id="koppen-explanation" class="hidden bg-slate-950/90 border border-slate-800 p-5 rounded-2xl space-y-3 text-xs leading-relaxed shadow-xl">
-                    <div id="koppen-result-title" class="font-extrabold text-sm flex items-center gap-2">--</div>
-                    <p id="koppen-result-text" class="text-slate-300 font-medium">--</p>
-                    <button onclick="nextKoppenQuestion()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-extrabold text-white transition text-xs flex items-center justify-center gap-2 shadow-neon-green">
-                        <span>Volgende Vraag</span>
+
+            </div>
+        </div>
+
+        <!-- ... existing game screens (flag-screen, koppen-screen, results-screen) ... -->
                         <i class="fa-solid fa-arrow-right"></i>
-                    </button>
+        <!-- ================= LEVEL STATUS MODAL ================= -->
+        <div id="level-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div class="glass-panel border border-slate-800 max-w-md w-full rounded-3xl p-6 space-y-6 shadow-2xl relative text-center">
+                <button onclick="closeLevelModal()" class="absolute top-5 right-5 w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                
+                <div class="space-y-2">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 font-black text-2xl flex items-center justify-center mx-auto shadow-neon-purple">
+                        <span id="modal-level-badge">Lvl 1</span>
+                    </div>
+                    <h2 id="modal-rank-title" class="text-2xl font-black text-white">Novice Explorer</h2>
+                    <p class="text-xs text-slate-400">Je voortgang naar het volgende level:</p>
                 </div>
+
+                <!-- XP Status Card -->
+                <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="flex justify-between text-xs font-bold">
+                        <span class="text-slate-400">Totale XP:</span>
+                        <span id="modal-total-xp" class="text-emerald-400">0 XP</span>
+                    </div>
+                    <div class="flex justify-between text-xs font-bold">
+                        <span class="text-slate-400">Nodig voor Volgend Level:</span>
+                        <span id="modal-needed-xp" class="text-amber-400">100 XP</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
+                        <div id="modal-xp-bar" class="bg-gradient-to-r from-emerald-400 to-cyan-400 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <!-- Unlockable Ranks List -->
+                <div class="text-left space-y-2">
+                    <h4 class="text-xs font-black uppercase text-slate-400 tracking-wider">Geografische Ranglijst</h4>
+                    <div class="space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center p-2 rounded-xl bg-slate-900/50 border border-slate-800">
+                            <span class="font-bold text-slate-300">🌱 Scout</span>
+                            <span class="text-slate-500 font-semibold">Level 2</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 rounded-xl bg-slate-900/50 border border-slate-800">
+                            <span class="font-bold text-slate-300">🧭 Explorer</span>
+                            <span class="text-slate-500 font-semibold">Level 5</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 rounded-xl bg-slate-900/50 border border-slate-800">
+                            <span class="font-bold text-slate-300">📜 Expert</span>
+                            <span class="text-slate-500 font-semibold">Level 10</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 rounded-xl bg-slate-900/50 border border-slate-800">
+                            <span class="font-bold text-slate-300">🌍 Master</span>
+                            <span class="text-slate-500 font-semibold">Level 15+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="closeLevelModal()" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition">
+                    Sluiten
+                </button>
             </div>
         </div>
-        <!-- ================= RESULTS & CELEBRATION SCREEN ================= -->
-        <div id="results-screen" class="hidden max-w-md mx-auto w-full glass-panel border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 text-center shadow-2xl relative overflow-hidden">
-            <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-orange-500 text-slate-950 flex items-center justify-center text-4xl font-extrabold mx-auto shadow-neon-purple animate-bounce">
-                <i class="fa-solid fa-trophy"></i>
-            </div>
-            <div class="space-y-1">
-                <h2 class="text-3xl font-black text-white">Ronde Voltooid!</h2>
-                <p id="results-subtitle" class="text-slate-400 text-xs font-semibold">Fantastisch gespeeld!</p>
-            </div>
-            <!-- Score breakdown box -->
-            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 space-y-2 shadow-inner">
-                <span class="text-xs uppercase tracking-widest font-black text-slate-500">Totaal Behaalde Score</span>
-                <div id="results-final-score" class="text-5xl font-black gradient-text-emerald">0 pt</div>
-            </div>
-            <div class="flex gap-3 pt-2">
-                <button onclick="showScreen('menu-screen')" class="flex-1 py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm transition border border-slate-700 shadow-md">
-                    Menu
-                </button>
-                <button onclick="replayCurrentGame()" class="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm transition shadow-neon-green">
-                    Opnieuw
-                </button>
-            </div>
-        </div>
+
+        <!-- ... existing instructions modal ... -->
     </main>
 
     <script>
@@ -551,15 +596,36 @@
         let koppenRound = 1;
         let koppenCurrentItem = null;
 
+        function toggleInstructionsModal() {
+            playSoundEffect('click');
+            const modal = document.getElementById('instructions-modal');
+            if (modal) {
+                modal.classList.toggle('hidden');
+            }
+        }
+
         function updateXPDisplay() {
             document.getElementById('global-xp').textContent = globalXP;
             
-            // Calculate Rank
-            let rank = "Novice Explorer";
-            if (globalXP >= 1500) rank = "Master Geographer 🌍";
-            else if (globalXP >= 800) rank = "Cartographer 📜";
-            else if (globalXP >= 300) rank = "Wayfinder 🧭";
-            document.getElementById('player-rank-title').textContent = rank;
+            // Level berekening (100 XP per level)
+            const level = Math.floor(globalXP / 100) + 1;
+            const xpInCurrentLevel = globalXP % 100; // 0-99%
+
+            const levelEl = document.getElementById('player-level');
+            if (levelEl) levelEl.textContent = `Lvl ${level}`;
+
+            const progressBar = document.getElementById('xp-progress-bar');
+            if (progressBar) progressBar.style.width = `${xpInCurrentLevel}%`;
+
+            // Bepaal de titel op basis van level
+            let rank = "Novice";
+            if (level >= 15) rank = "Master 🌍";
+            else if (level >= 10) rank = "Expert 📜";
+            else if (level >= 5) rank = "Explorer 🧭";
+            else if (level >= 2) rank = "Scout 🌱";
+            
+            const rankEl = document.getElementById('player-rank-title');
+            if (rankEl) rankEl.textContent = rank;
         }
 
         function showScreen(screenId) {
@@ -894,6 +960,101 @@
             }
             return array;
         }
+    </script>
+</body>
+</html>
+        /* TASKBAR & LEVEL MODAL LOGIC */
+        let taskState = {
+            task1: { count: 0, target: 1, claimed: false },
+            task2: { count: 0, target: 3, claimed: false },
+            task3: { count: 0, target: 2, claimed: false }
+        };
+
+        function openLevelModal() {
+            playSoundEffect('click');
+            const level = Math.floor(globalXP / 100) + 1;
+            const xpInCurrentLevel = globalXP % 100;
+            const neededXP = 100 - xpInCurrentLevel;
+
+            document.getElementById('modal-level-badge').textContent = `Lvl ${level}`;
+            document.getElementById('modal-total-xp').textContent = `${globalXP} XP`;
+            document.getElementById('modal-needed-xp').textContent = `${neededXP} XP`;
+            document.getElementById('modal-xp-bar').style.width = `${xpInCurrentLevel}%`;
+            
+            const rankTitle = document.getElementById('player-rank-title').textContent;
+            document.getElementById('modal-rank-title').textContent = `${rankTitle} Rank`;
+
+            document.getElementById('level-modal').classList.remove('hidden');
+        }
+
+        function closeLevelModal() {
+            playSoundEffect('click');
+            document.getElementById('level-modal').classList.add('hidden');
+        }
+
+        function updateTasksProgress(type, amount = 1) {
+            if (type === 'flag_played') {
+                taskState.task1.count = Math.min(taskState.task1.target, taskState.task1.count + amount);
+            } else if (type === 'streak') {
+                taskState.task2.count = Math.max(taskState.task2.count, amount);
+            } else if (type === 'koppen_solved') {
+                taskState.task3.count = Math.min(taskState.task3.target, taskState.task3.count + amount);
+            }
+            renderTasks();
+        }
+
+        function renderTasks() {
+            // Task 1
+            const t1 = taskState.task1;
+            document.getElementById('task1-bar').style.width = `${(t1.count / t1.target) * 100}%`;
+            document.getElementById('task1-status').textContent = t1.claimed ? 'Voltooid! ✓' : `${t1.count} / ${t1.target} Voltooid`;
+            if (t1.count >= t1.target && !t1.claimed) {
+                document.getElementById('task1-claim').classList.remove('hidden');
+            }
+
+            // Task 2
+            const t2 = taskState.task2;
+            document.getElementById('task2-bar').style.width = `${Math.min(100, (t2.count / t2.target) * 100)}%`;
+            document.getElementById('task2-status').textContent = t2.claimed ? 'Voltooid! ✓' : `${t2.count} / ${t2.target} Streak`;
+            if (t2.count >= t2.target && !t2.claimed) {
+                document.getElementById('task2-claim').classList.remove('hidden');
+            }
+
+            // Task 3
+            const t3 = taskState.task3;
+            document.getElementById('task3-bar').style.width = `${(t3.count / t3.target) * 100}%`;
+            document.getElementById('task3-status').textContent = t3.claimed ? 'Voltooid! ✓' : `${t3.count} / ${t3.target} Voltooid`;
+            if (t3.count >= t3.target && !t3.claimed) {
+                document.getElementById('task3-claim').classList.remove('hidden');
+            }
+        }
+
+        function claimTaskReward(taskId, xpBonus) {
+            playSoundEffect('fanfare');
+            globalXP += xpBonus;
+            updateXPDisplay();
+            taskState[`task${taskId}`].claimed = true;
+            document.getElementById(`task${taskId}-claim`).classList.add('hidden');
+            renderTasks();
+        }
+
+        /* Hook updates into game events */
+        const originalCheckFlagAnswer = checkFlagAnswer;
+        checkFlagAnswer = function(selected, correct, btnElement) {
+            updateTasksProgress('flag_played', 1);
+            if (selected === correct) {
+                updateTasksProgress('streak', flagStreak + 1);
+            }
+            originalCheckFlagAnswer(selected, correct, btnElement);
+        };
+
+        const originalCheckKoppenAnswer = checkKoppenAnswer;
+        checkKoppenAnswer = function(selected, item, btnElement) {
+            if (selected === item.code) {
+                updateTasksProgress('koppen_solved', 1);
+            }
+            originalCheckKoppenAnswer(selected, item, btnElement);
+        };
     </script>
 </body>
 </html>
