@@ -257,6 +257,12 @@
                     </span>
                 </div>
                 <div class="flex items-center gap-5 text-sm font-extrabold">
+                    <div class="text-slate-400">
+                        Score: <span id="flag-score" class="text-emerald-400 text-base">0</span>
+                    </div>
+                    <div class="text-slate-400">
+                        Streak: <span id="flag-streak" class="text-amber-400 text-base">0</span> 🔥
+                    </div>
                     <div id="flag-lives-container" class="flex gap-1 text-rose-500 text-lg">
                         ❤️❤❤️
                     </div>
@@ -697,11 +703,15 @@
                 btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-sm border border-emerald-400 shadow-neon-green";
                 
                 flagStreak++;
+                flagScore += 100 + (flagStreak * 10);
                 globalXP += 25;
+
+                document.getElementById('flag-score').textContent = flagScore;
+                document.getElementById('flag-streak').textContent = flagStreak;
                 updateXPDisplay();
 
                 feedback.className = "p-4 rounded-2xl text-center font-black text-sm bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg block animate-bounce";
-                feedback.textContent = `🎉 Goed gedaan!`;
+                feedback.textContent = `🎉 Goed gedaan! (+${100 + (flagStreak * 10)} pt)`;
 
                 setTimeout(() => {
                     currentFlagIndex++;
@@ -720,6 +730,7 @@
                 });
 
                 flagStreak = 0;
+                document.getElementById('flag-streak').textContent = '0';
                 flagLives--;
                 renderLives();
 
