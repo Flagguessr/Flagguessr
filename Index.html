@@ -43,6 +43,7 @@
         }
     </script>
     <style>
+        /* Custom glow & pulse animations */
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-8px); }
@@ -104,7 +105,6 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white relative overflow-x-hidden">
 
-    <!-- Background Particle Canvas -->
     <canvas id="bg-particles" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
     
     <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 transition-all">
@@ -162,7 +162,7 @@
                     Word De Meester Van De <span class="gradient-text-cyber">Aarde</span>
                 </h1>
                 <p class="text-slate-400 text-sm sm:text-base font-medium max-w-lg mx-auto">
-                    Kies je categorie, test je kennis van vlaggen of klimaten en klim naar de top van de ranglijst!
+                    Kies je categorie en test je kennis van vlaggen of klimaten!
                 </p>
             </div>
 
@@ -224,7 +224,7 @@
                         </div>
                         <div>
                             <h2 class="text-2xl sm:text-3xl font-black text-white group-hover:text-emerald-300 transition-colors">KöppenGuessr</h2>
-                            <p class="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">Analyseer klimaatdiagrammen (temperatuur & neerslag) en kraak de Köppen-codes!</p>
+                            <p class="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">Analyseer high-tech klimaatdiagrammen (temperatuur & neerslag) en kraak de Köppen-codes!</p>
                         </div>
                     </div>
 
@@ -260,6 +260,9 @@
                     <div id="flag-lives-container" class="flex gap-1 text-rose-500 text-lg">
                         ❤️❤❤️
                     </div>
+                    <div class="text-slate-400">
+                        Score: <span id="flag-score" class="text-white text-base">0</span>
+                    </div>
                 </div>
             </div>
 
@@ -292,6 +295,9 @@
                 <div class="flex items-center gap-5 text-sm font-extrabold">
                     <div class="text-slate-400">
                         Vraag: <span id="koppen-round-num" class="text-white text-base">1</span>/10
+                    </div>
+                    <div class="text-slate-400">
+                        Score: <span id="koppen-score" class="text-white text-base">0</span>
                     </div>
                 </div>
             </div>
@@ -365,7 +371,7 @@
     </main>
 
     <script>
-        /* ================= AUDIO SYNTHESIZER ENGINE (Web Audio API) ================= */
+        /* Audio Engine */
         let audioCtx = null;
         let isMuted = false;
 
@@ -400,33 +406,20 @@
                 gain.connect(audioCtx.destination);
                 osc.start();
                 osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {
-                console.log("Audio play blocked", e);
-            }
+            } catch (e) {}
         }
 
-        function playSoundEffect(effect) {
-            if (isMuted) return;
-            initAudio();
-
-            if (effect === 'correct') {
-                playAudioTone(523.25, 'sine', 0.12, 0.2);
-                setTimeout(() => playAudioTone(659.25, 'sine', 0.12, 0.2), 80);
-                setTimeout(() => playAudioTone(783.99, 'sine', 0.15, 0.25), 160);
-                setTimeout(() => playAudioTone(1046.50, 'triangle', 0.25, 0.3), 240);
-            } else if (effect === 'wrong') {
-                playAudioTone(220, 'sawtooth', 0.15, 0.2);
-                setTimeout(() => playAudioTone(196, 'sawtooth', 0.25, 0.25), 100);
-            } else if (effect === 'click') {
-                playAudioTone(800, 'sine', 0.04, 0.08);
-            } else if (effect === 'fanfare') {
-                [523, 659, 783, 1046, 1318].forEach((f, i) => {
-                    setTimeout(() => playAudioTone(f, 'triangle', 0.2, 0.25), i * 90);
-                });
-            }
+        /* Screen navigation */
+        function showScreen(screenId) {
+            ['menu-screen', 'flag-screen', 'koppen-screen', 'results-screen'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+            document.getElementById('nav-menu-btn').classList.toggle('hidden', screenId === 'menu-screen');
         }
 
-        /* ================= BACKGROUND PARTICLES CANVAS ================= */
+        /* Particles */
         const bgCanvas = document.getElementById('bg-particles');
         const bgCtx = bgCanvas.getContext('2d');
         let particles = [];
@@ -454,7 +447,6 @@
             particles.forEach(p => {
                 p.x += p.vx;
                 p.y += p.vy;
-
                 if (p.x < 0) p.x = bgCanvas.width;
                 if (p.x > bgCanvas.width) p.x = 0;
                 if (p.y < 0) p.y = bgCanvas.height;
@@ -468,493 +460,6 @@
             requestAnimationFrame(animateBgParticles);
         }
         animateBgParticles();
-
-        /* ================= DATASETS ================= */
-        const flagDatabase = {
-            makkelijk: [
-                { name: "Nederland", code: "nl", continent: "🇪🇺 Europa", distractors: ["België", "Duitsland", "Frankrijk"] },
-                { name: "Frankrijk", code: "fr", continent: "🇪🇺 Europa", distractors: ["Italië", "Nederland", "België"] },
-                { name: "Duitsland", code: "de", continent: "🇪🇺 Europa", distractors: ["Oostenrijk", "België", "Polen"] },
-                { name: "Verenigd Koninkrijk", code: "gb", continent: "🇪🇺 Europa", distractors: ["Australië", "Nieuw-Zeeland", "Ierland"] },
-                { name: "Verenigde Staten", code: "us", continent: "🌎 Noord-Amerika", distractors: ["Canada", "Liberia", "Puerto Rico"] },
-                { name: "Spanje", code: "es", continent: "🇪🇺 Europa", distractors: ["Portugal", "Italië", "Griekenland"] },
-                { name: "Italië", code: "it", continent: "🇪🇺 Europa", distractors: ["Ierland", "Hongarije", "Frankrijk"] },
-                { name: "Japan", code: "jp", continent: "🌏 Azië", distractors: ["Zuid-Korea", "China", "Bangladesh"] },
-                { name: "Brazilië", code: "br", continent: "🌎 Zuid-Amerika", distractors: ["Argentinië", "Colombia", "Peru"] },
-                { name: "Canada", code: "ca", continent: "🌎 Noord-Amerika", distractors: ["Verenigde Staten", "Oostenrijk", "Denemarken"] }
-            ],
-            gemiddeld: [
-                { name: "Zweden", code: "se", continent: "🇪🇺 Europa", distractors: ["Finland", "Noorwegen", "Denemarken"] },
-                { name: "Griekenland", code: "gr", continent: "🇪🇺 Europa", distractors: ["Cyprus", "Finland", "Uruguay"] },
-                { name: "Turkije", code: "tr", continent: "🌍 Midden-Oosten", distractors: ["Tunesië", "Pakistan", "Algerije"] },
-                { name: "Zuid-Afrika", code: "za", continent: "🌍 Afrika", distractors: ["Zimbabwe", "Namibië", "Kenia"] },
-                { name: "Argentinië", code: "ar", continent: "🌎 Zuid-Amerika", distractors: ["Uruguay", "Guatemala", "Honduras"] },
-                { name: "Mexico", code: "mx", continent: "🌎 Noord-Amerika", distractors: ["Italië", "Hongarije", "Peru"] },
-                { name: "India", code: "in", continent: "🌏 Azië", distractors: ["Niger", "Ierland", "Sri Lanka"] },
-                { name: "Zwitserland", code: "ch", continent: "🇪🇺 Europa", distractors: ["Oostenrijk", "Denemarken", "Griekenland"] },
-                { name: "Egypte", code: "eg", continent: "🌍 Midden-Oosten", distractors: ["Syrië", "Jemen", "Irak"] },
-                { name: "Marokko", code: "ma", continent: "🌍 Afrika", distractors: ["Vietnam", "Tunesië", "Algerije"] }
-            ],
-            moeilijk: [
-                { name: "Tjaad", code: "td", continent: "🌍 Afrika", distractors: ["Roemenië", "Moldavië", "Andorra"] },
-                { name: "Roemenië", code: "ro", continent: "🇪🇺 Europa", distractors: ["Tjaad", "Moldavië", "België"] },
-                { name: "Indonesië", code: "id", continent: "🌏 Azië", distractors: ["Monaco", "Polen", "Singapore"] },
-                { name: "Monaco", code: "mc", continent: "🇪🇺 Europa", distractors: ["Indonesië", "Polen", "Oostenrijk"] },
-                { name: "Nieuw-Zeeland", code: "nz", continent: "Oceanie", distractors: ["Australië", "Tuvalu", "Fiji"] },
-                { name: "Australië", code: "au", continent: "Oceanie", distractors: ["Nieuw-Zeeland", "Verenigd Koninkrijk", "Samoa"] },
-                { name: "Slovenië", code: "si", continent: "🇪🇺 Europa", distractors: ["Slowakije", "Rusland", "Kroatië"] },
-                { name: "Slowakije", code: "sk", continent: "🇪🇺 Europa", distractors: ["Slovenië", "Tsjechië", "Rusland"] },
-                { name: "Mali", code: "ml", continent: "🌍 Afrika", distractors: ["Guinee", "Senegal", "Ghana"] },
-                { name: "Guinee", code: "gn", continent: "🌍 Afrika", distractors: ["Mali", "Kameroen", "Ghana"] }
-            ]
-        };
-
-        const koppenDatabase = [
-            {
-                code: "Af - Tropisch Regenwoudklimaat",
-                short: "Af",
-                temp: [26, 26, 27, 27, 27, 26, 26, 26, 27, 27, 26, 26],
-                precip: [280, 250, 310, 290, 220, 180, 160, 150, 180, 210, 240, 270],
-                desc: "Tropisch regenwoudklimaat (Af): Elke maand heeft een gemiddelde temperatuur boven 18°C en neerslag boven 60 mm (geen droog seizoen)."
-            },
-            {
-                code: "BWk - Koud Woestijnklimaat",
-                short: "BWk",
-                temp: [-5, -2, 5, 12, 19, 24, 27, 25, 19, 11, 3, -3],
-                precip: [10, 8, 12, 15, 18, 14, 10, 8, 6, 8, 9, 11],
-                desc: "Koud woestijnklimaat (BWk): Zeer droog het hele jaar door, met koude winters (gemiddelde jaartemperatuur onder 18°C)."
-            },
-            {
-                code: "Cfb - Gematigd Zeeklimaat",
-                short: "Cfb",
-                temp: [3, 4, 7, 10, 14, 17, 19, 19, 16, 12, 7, 4],
-                precip: [70, 55, 60, 45, 55, 65, 75, 80, 70, 80, 80, 75],
-                desc: "Gematigd zeeklimaat (Cfb): Zachte winters, koele zomers en neerslag gelijkmatig verdeeld over het hele jaar (o.a. Nederland)."
-            },
-            {
-                code: "Csa - Mediterraan Klimaat",
-                short: "Csa",
-                temp: [10, 11, 13, 16, 20, 24, 28, 28, 24, 20, 15, 11],
-                precip: [90, 80, 60, 40, 20, 5, 2, 8, 35, 75, 95, 100],
-                desc: "Mediterraan / Middellandse Zeeklimaat (Csa): Warme, zeer droge zomers en milde, natte winters."
-            },
-            {
-                code: "Dfc - Subarctisch Klimaat",
-                short: "Dfc",
-                temp: [-20, -17, -10, -1, 7, 14, 17, 15, 8, 0, -10, -17],
-                precip: [20, 18, 20, 25, 35, 55, 70, 65, 45, 35, 28, 22],
-                desc: "Subarctisch / Landklimaat (Dfc): Zeer koude, lange winters en korte, koele zomers met neerslag in de zomer."
-            },
-            {
-                code: "EF - Poolklimaat / Sneeuwklimaat",
-                short: "EF",
-                temp: [-35, -38, -32, -25, -15, -5, -2, -4, -12, -22, -30, -35],
-                precip: [8, 6, 5, 8, 10, 12, 15, 14, 10, 8, 7, 8],
-                desc: "Eeuwige sneeuw / Poolklimaat (EF): Gemiddelde temperatuur van de warmste maand komt nooit boven 0°C."
-            }
-        ];
-
-        /* ================= GAME STATE VARIABLES ================= */
-        let currentGameMode = ''; 
-        let globalXP = 0;
-        
-        // Flag Game State
-        let flagDifficulty = 'makkelijk';
-        let flagScore = 0;
-        let flagLives = 3;
-        let flagStreak = 0;
-        let currentFlagIndex = 0;
-        let flagDeck = [];
-
-        // Koppen Game State
-        let koppenMode = 'normaal';
-        let koppenScore = 0;
-        let koppenRound = 1;
-        let koppenCurrentItem = null;
-
-        function updateXPDisplay() {
-            document.getElementById('global-xp').textContent = globalXP;
-            
-            // Calculate Rank
-            let rank = "Novice Explorer";
-            if (globalXP >= 1500) rank = "Master Geographer 🌍";
-            else if (globalXP >= 800) rank = "Cartographer 📜";
-            else if (globalXP >= 300) rank = "Wayfinder 🧭";
-
-            document.getElementById('player-rank-title').textContent = rank;
-        }
-
-        function showScreen(screenId) {
-            playSoundEffect('click');
-            ['menu-screen', 'flag-screen', 'koppen-screen', 'results-screen'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.classList.add('hidden');
-            });
-
-            const target = document.getElementById(screenId);
-            if (target) target.classList.remove('hidden');
-
-            const navBtn = document.getElementById('nav-menu-btn');
-            if (navBtn) {
-                if (screenId === 'menu-screen') navBtn.classList.add('hidden');
-                else navBtn.classList.remove('hidden');
-            }
-        }
-
-        /* ================= FLAGGUESSR ENGINE ================= */
-        function startFlagGame(difficulty) {
-            currentGameMode = 'flag';
-            flagDifficulty = difficulty;
-            flagScore = 0;
-            flagStreak = 0;
-            flagLives = (difficulty === 'oneindig') ? 1 : 3;
-
-            document.getElementById('flag-score').textContent = '0';
-            document.getElementById('flag-streak').textContent = '0';
-            document.getElementById('flag-mode-badge').textContent = difficulty.toUpperCase();
-
-            // Prepare Deck
-            let pool = [];
-            if (difficulty === 'oneindig') {
-                pool = [...flagDatabase.makkelijk, ...flagDatabase.gemiddeld, ...flagDatabase.moeilijk];
-            } else {
-                pool = [...(flagDatabase[difficulty] || flagDatabase.makkelijk)];
-            }
-            flagDeck = shuffleArray(pool);
-            currentFlagIndex = 0;
-
-            renderLives();
-            showScreen('flag-screen');
-            loadNextFlagQuestion();
-        }
-
-        function renderLives() {
-            const container = document.getElementById('flag-lives-container');
-            if (flagDifficulty === 'oneindig') {
-                container.innerHTML = '<span class="text-xs text-amber-400 font-black">⚡ 1 LIFE SURVIVAL</span>';
-                return;
-            }
-            let hearts = '';
-            for (let i = 0; i < 3; i++) {
-                if (i < flagLives) hearts += '<i class="fa-solid fa-heart animate-pulse"></i>';
-                else hearts += '<i class="fa-solid fa-heart text-slate-700"></i>';
-            }
-            container.innerHTML = hearts;
-        }
-
-        function loadNextFlagQuestion() {
-            const feedback = document.getElementById('flag-feedback');
-            feedback.classList.add('hidden');
-
-            if (currentFlagIndex >= flagDeck.length) {
-                if (flagDifficulty === 'oneindig') {
-                    // Reshuffle for endless
-                    flagDeck = shuffleArray([...flagDatabase.makkelijk, ...flagDatabase.gemiddeld, ...flagDatabase.moeilijk]);
-                    currentFlagIndex = 0;
-                } else {
-                    finishGameRound();
-                    return;
-                }
-            }
-
-            const current = flagDeck[currentFlagIndex];
-            
-            // Set flag image
-            const flagImg = document.getElementById('flag-image');
-            flagImg.src = `https://flagcdn.com/w320/${current.code}.png`;
-            flagImg.onerror = function() {
-                this.src = `https://placehold.co/320x213/0f172a/38bdf8?text=${current.name}`;
-            };
-
-            document.getElementById('flag-continent-badge').textContent = current.continent;
-
-            // Generate choices (1 correct + 3 options)
-            let choices = [current.name];
-            let distractors = shuffleArray(current.distractors || ["België", "Duitsland", "Spanje"]).slice(0, 3);
-            choices = shuffleArray([...choices, ...distractors]);
-
-            const grid = document.getElementById('flag-options-grid');
-            grid.innerHTML = '';
-
-            choices.forEach(option => {
-                const btn = document.createElement('button');
-                btn.className = "w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 font-bold text-sm text-slate-200 hover:text-white transition shadow-md active:scale-95";
-                btn.textContent = option;
-                btn.onclick = () => checkFlagAnswer(option, current.name, btn);
-                grid.appendChild(btn);
-            });
-        }
-
-        function checkFlagAnswer(selected, correct, btnElement) {
-            const grid = document.getElementById('flag-options-grid');
-            const buttons = grid.querySelectorAll('button');
-            buttons.forEach(b => b.disabled = true);
-
-            const feedback = document.getElementById('flag-feedback');
-
-            if (selected === correct) {
-                playSoundEffect('correct');
-                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-sm border border-emerald-400 shadow-neon-green";
-                
-                flagStreak++;
-                globalXP += 25;
-                updateXPDisplay();
-
-                feedback.className = "p-4 rounded-2xl text-center font-black text-sm bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg block animate-bounce";
-                feedback.textContent = `🎉 Goed gedaan!`;
-
-                setTimeout(() => {
-                    currentFlagIndex++;
-                    loadNextFlagQuestion();
-                }, 1200);
-
-            } else {
-                playSoundEffect('wrong');
-                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-rose-600 text-white font-black text-sm border border-rose-400 shake-anim";
-                
-                // Highlight correct button
-                buttons.forEach(b => {
-                    if (b.textContent === correct) {
-                        b.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-sm border border-emerald-400";
-                    }
-                });
-
-                flagStreak = 0;
-                flagLives--;
-                renderLives();
-
-                feedback.className = "p-4 rounded-2xl text-center font-black text-sm bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-lg block";
-                feedback.textContent = `❌ Helaas! Het juiste antwoord was ${correct}.`;
-
-                if (flagLives <= 0) {
-                    setTimeout(() => finishGameRound(), 1600);
-                } else {
-                    setTimeout(() => {
-                        currentFlagIndex++;
-                        loadNextFlagQuestion();
-                    }, 1800);
-                }
-            }
-        }
-
-        /* ================= KÖPPENGUESSR ENGINE & CHART CANVAS ================= */
-        function startKoppenGame(mode) {
-            currentGameMode = 'koppen';
-            koppenMode = mode;
-            koppenScore = 0;
-            koppenRound = 1;
-
-            document.getElementById('koppen-score').textContent = '0';
-            document.getElementById('koppen-round-num').textContent = '1';
-            document.getElementById('koppen-mode-badge').textContent = mode.toUpperCase();
-
-            showScreen('koppen-screen');
-            loadNextKoppenQuestion();
-        }
-
-        function loadNextKoppenQuestion() {
-            document.getElementById('koppen-explanation').classList.add('hidden');
-            document.getElementById('koppen-round-num').textContent = koppenRound;
-
-            // Pick random Köppen item
-            const item = koppenDatabase[Math.floor(Math.random() * koppenDatabase.length)];
-            koppenCurrentItem = item;
-
-            // Render Chart
-            renderClimateChart(item.temp, item.precip);
-
-            // Options
-            let choices = [item.code];
-            let otherItems = koppenDatabase.filter(k => k.code !== item.code);
-            let distractors = shuffleArray(otherItems).slice(0, 3).map(k => k.code);
-            choices = shuffleArray([...choices, ...distractors]);
-
-            const grid = document.getElementById('koppen-options-grid');
-            grid.innerHTML = '';
-
-            choices.forEach(option => {
-                const btn = document.createElement('button');
-                btn.className = "w-full py-3.5 px-4 rounded-2xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 font-bold text-xs sm:text-sm text-slate-200 hover:text-white transition shadow-md active:scale-95 text-left";
-                btn.textContent = option;
-                btn.onclick = () => checkKoppenAnswer(option, item, btn);
-                grid.appendChild(btn);
-            });
-        }
-
-        function renderClimateChart(temps, precips) {
-            const canvas = document.getElementById('climate-chart');
-            const ctx = canvas.getContext('2d');
-
-            // Responsive high-DPI scaling
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * 2;
-            canvas.height = 230 * 2;
-            ctx.scale(2, 2);
-
-            const width = rect.width;
-            const height = 230;
-
-            ctx.clearRect(0, 0, width, height);
-
-            const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-            const paddingLeft = 35;
-            const paddingRight = 35;
-            const paddingTop = 25;
-            const paddingBottom = 30;
-
-            const chartW = width - paddingLeft - paddingRight;
-            const chartH = height - paddingTop - paddingBottom;
-
-            // Draw grid lines
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-            ctx.lineWidth = 1;
-            for (let i = 0; i <= 4; i++) {
-                const y = paddingTop + (chartH / 4) * i;
-                ctx.beginPath();
-                ctx.moveTo(paddingLeft, y);
-                ctx.lineTo(width - paddingRight, y);
-                ctx.stroke();
-            }
-
-            // Draw Bars (Precipitation - mm: 0 to 350)
-            const maxP = 350;
-            const barWidth = (chartW / 12) * 0.5;
-
-            precips.forEach((p, i) => {
-                const x = paddingLeft + (chartW / 12) * i + (chartW / 24) - (barWidth / 2);
-                const barH = (p / maxP) * chartH;
-                const y = paddingTop + chartH - barH;
-
-                ctx.fillStyle = 'rgba(56, 189, 248, 0.75)';
-                ctx.beginPath();
-                ctx.roundRect(x, y, barWidth, barH, [3, 3, 0, 0]);
-                ctx.fill();
-            });
-
-            // Draw Line (Temperature - °C: -40 to +40)
-            const minT = -40;
-            const maxT = 40;
-
-            ctx.beginPath();
-            ctx.strokeStyle = '#f43f5e';
-            ctx.lineWidth = 3;
-
-            temps.forEach((t, i) => {
-                const x = paddingLeft + (chartW / 12) * i + (chartW / 24);
-                const normT = (t - minT) / (maxT - minT);
-                const y = paddingTop + chartH - (normT * chartH);
-
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            });
-            ctx.stroke();
-
-            // Draw points
-            temps.forEach((t, i) => {
-                const x = paddingLeft + (chartW / 12) * i + (chartW / 24);
-                const normT = (t - minT) / (maxT - minT);
-                const y = paddingTop + chartH - (normT * chartH);
-
-                ctx.fillStyle = '#fb7185';
-                ctx.beginPath();
-                ctx.arc(x, y, 4, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // Draw X-Axis Labels (Months)
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 10px Plus Jakarta Sans, sans-serif';
-            ctx.textAlign = 'center';
-
-            months.forEach((m, i) => {
-                const x = paddingLeft + (chartW / 12) * i + (chartW / 24);
-                ctx.fillText(m, x, height - 10);
-            });
-        }
-
-        function checkKoppenAnswer(selected, item, btnElement) {
-            const grid = document.getElementById('koppen-options-grid');
-            const buttons = grid.querySelectorAll('button');
-            buttons.forEach(b => b.disabled = true);
-
-            const expBox = document.getElementById('koppen-explanation');
-            const resTitle = document.getElementById('koppen-result-title');
-            const resText = document.getElementById('koppen-result-text');
-
-            if (selected === item.code) {
-                playSoundEffect('correct');
-                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-xs sm:text-sm border border-emerald-400 shadow-neon-green";
-                
-                koppenScore += 150;
-                globalXP += 35;
-                updateXPDisplay();
-
-                resTitle.className = "font-extrabold text-sm flex items-center gap-2 text-emerald-400";
-                resTitle.innerHTML = `<i class="fa-solid fa-circle-check"></i> Uitstekend Geanalyseerd!`;
-            } else {
-                playSoundEffect('wrong');
-                btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-rose-600 text-white font-black text-xs sm:text-sm border border-rose-400 shake-anim";
-
-                buttons.forEach(b => {
-                    if (b.textContent === item.code) {
-                        b.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-xs sm:text-sm border border-emerald-400";
-                    }
-                });
-
-                resTitle.className = "font-extrabold text-sm flex items-center gap-2 text-rose-400";
-                resTitle.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Helaas, Niet Correct`;
-            }
-
-            resText.textContent = item.desc;
-            expBox.classList.remove('hidden');
-        }
-
-        function nextKoppenQuestion() {
-            koppenRound++;
-            if (koppenMode === 'normaal' && koppenRound > 10) {
-                finishGameRound();
-            } else {
-                loadNextKoppenQuestion();
-            }
-        }
-
-        /* ================= GAME OVER / RESULTS ================= */
-        function finishGameRound() {
-            playSoundEffect('fanfare');
-            showScreen('results-screen');
-
-            const finalScoreEl = document.getElementById('results-final-score');
-            const subtitleEl = document.getElementById('results-subtitle');
-
-            let score = (currentGameMode === 'flag') ? flagScore : koppenScore;
-            finalScoreEl.textContent = `${score} pt`;
-
-            if (score > 800) {
-                subtitleEl.textContent = "🏆 Masterclass! Je bent een ware geografie-expert!";
-            } else if (score > 400) {
-                subtitleEl.textContent = "🌟 Goed gedaan! Je geografische kennis is uitstekend.";
-            } else {
-                subtitleEl.textContent = "👍 Blijf oefenen en ontdek meer van de wereld!";
-            }
-        }
-
-        function replayCurrentGame() {
-            if (currentGameMode === 'flag') {
-                startFlagGame(flagDifficulty);
-            } else {
-                startKoppenGame(koppenMode);
-            }
-        }
-
-        /* Helper: Array Shuffler */
-        function shuffleArray(arr) {
-            const array = [...arr];
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
     </script>
 </body>
 </html>
