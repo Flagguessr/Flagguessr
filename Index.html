@@ -260,13 +260,6 @@
                     <div id="flag-lives-container" class="flex gap-1 text-rose-500 text-lg">
                         ❤️❤❤️
                     </div>
-                    <div class="text-slate-400">
-                        Score: <span id="flag-score" class="text-white text-base">0</span>
-                    </div>
-                    <div class="text-amber-400 flex items-center gap-1">
-                        <i class="fa-solid fa-fire text-amber-500 animate-bounce"></i>
-                        <span id="flag-streak" class="text-base">0</span>
-                    </div>
                 </div>
             </div>
 
@@ -299,9 +292,6 @@
                 <div class="flex items-center gap-5 text-sm font-extrabold">
                     <div class="text-slate-400">
                         Vraag: <span id="koppen-round-num" class="text-white text-base">1</span>/10
-                    </div>
-                    <div class="text-slate-400">
-                        Score: <span id="koppen-score" class="text-white text-base">0</span>
                     </div>
                 </div>
             </div>
@@ -707,16 +697,11 @@
                 btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-emerald-600 text-white font-black text-sm border border-emerald-400 shadow-neon-green";
                 
                 flagStreak++;
-                const pts = 100 + (flagStreak * 15);
-                flagScore += pts;
                 globalXP += 25;
                 updateXPDisplay();
 
-                document.getElementById('flag-score').textContent = flagScore;
-                document.getElementById('flag-streak').textContent = flagStreak;
-
                 feedback.className = "p-4 rounded-2xl text-center font-black text-sm bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg block animate-bounce";
-                feedback.textContent = `🎉 Goed gedaan! (+${pts} pt)`;
+                feedback.textContent = `🎉 Goed gedaan!`;
 
                 setTimeout(() => {
                     currentFlagIndex++;
@@ -735,7 +720,6 @@
                 });
 
                 flagStreak = 0;
-                document.getElementById('flag-streak').textContent = '0';
                 flagLives--;
                 renderLives();
 
@@ -905,10 +889,8 @@
                 globalXP += 35;
                 updateXPDisplay();
 
-                document.getElementById('koppen-score').textContent = koppenScore;
-
                 resTitle.className = "font-extrabold text-sm flex items-center gap-2 text-emerald-400";
-                resTitle.innerHTML = `<i class="fa-solid fa-circle-check"></i> Uitstekend Geanalyseerd! (+150 pt)`;
+                resTitle.innerHTML = `<i class="fa-solid fa-circle-check"></i> Uitstekend Geanalyseerd!`;
             } else {
                 playSoundEffect('wrong');
                 btnElement.className = "w-full py-3.5 px-4 rounded-2xl bg-rose-600 text-white font-black text-xs sm:text-sm border border-rose-400 shake-anim";
